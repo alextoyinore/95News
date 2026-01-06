@@ -9,8 +9,10 @@ import DashboardPagination from "@/components/DashboardPagination";
 
 export default function CategoriesPage() {
     const [categories, setCategories] = useState<Category[]>([]);
+    const [allCategories, setAllCategories] = useState<Category[]>([]); // For parent selection
     const [showAddModal, setShowAddModal] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
+    const [parentId, setParentId] = useState("");
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -21,6 +23,7 @@ export default function CategoriesPage() {
 
     useEffect(() => {
         fetchTotalCount();
+        fetchAllCategories();
         fetchCategories(1, null, itemsPerPage);
     }, []);
 
@@ -30,6 +33,16 @@ export default function CategoriesPage() {
             setTotalItems(snapshot.data().count);
         } catch (error) {
             console.error("Error fetching count:", error);
+        }
+    };
+
+    const fetchAllCategories = async () => {
+        try {
+            const q = query(collection(db, "categories"), orderBy("name"));
+            const snap = await getDocs(q);
+            setAllCategories(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category)));
+        } catch (error) {
+            console.error("Error fetching all categories:", error);
         }
     };
 
@@ -99,11 +112,14 @@ export default function CategoriesPage() {
             await addDoc(collection(db, "categories"), {
                 name: newCategoryName,
                 slug: newCategoryName.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
-                posts: 0 // Initialize post count logic later or aggregation
+                parentId: parentId || null,
+                posts: 0
             });
             setNewCategoryName("");
+            setParentId("");
             setShowAddModal(false);
             fetchTotalCount();
+            fetchAllCategories();
             fetchCategories(1, null, itemsPerPage);
             setCurrentPage(1);
         } catch (error) {
@@ -117,6 +133,7 @@ export default function CategoriesPage() {
             try {
                 await deleteDoc(doc(db, "categories", id));
                 fetchTotalCount();
+                fetchAllCategories();
                 fetchCategories(currentPage, pageTokens[currentPage], itemsPerPage);
             } catch (error) {
                 console.error("Error deleting category:", error);
@@ -126,6 +143,11 @@ export default function CategoriesPage() {
     };
 
     if (loading) return <div style={{ padding: "3rem", textAlign: "center" }}>Loading categories...</div>;
+
+    const getParentName = (pid?: string) => {
+        if (!pid) return "-";
+        return allCategories.find(c => c.id === pid)?.name || "-";
+    };
 
     return (
         <div>
@@ -173,9 +195,30 @@ export default function CategoriesPage() {
                                     border: "1px solid var(--border)",
                                     backgroundColor: "var(--bg-primary)",
                                     color: "var(--text-primary)",
-                                    outline: "none"
+                                    outline: "none",
+                                    marginBottom: "1rem"
                                 }}
                             />
+
+                            <label style={{ display: "block", fontSize: "0.9rem", marginBottom: "0.5rem" }}>Parent Category (Optional)</label>
+                            <select
+                                value={parentId}
+                                onChange={(e) => setParentId(e.target.value)}
+                                style={{
+                                    width: "100%",
+                                    padding: "0.8rem",
+                                    borderRadius: "var(--radius-sm)",
+                                    border: "1px solid var(--border)",
+                                    backgroundColor: "var(--bg-primary)",
+                                    color: "var(--text-primary)",
+                                    outline: "none"
+                                }}
+                            >
+                                <option value="">None (Top Level)</option>
+                                {allCategories.map(cat => (
+                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                ))}
+                            </select>
                         </div>
                         <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
                             <button className="btn" onClick={() => setShowAddModal(false)}>Cancel</button>
@@ -191,6 +234,7 @@ export default function CategoriesPage() {
                         <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
                             <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Name</th>
                             <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Slug</th>
+                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Parent</th>
                             <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Posts Count</th>
                             <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
                         </tr>
@@ -198,7 +242,7 @@ export default function CategoriesPage() {
                     <tbody>
                         {categories.length === 0 ? (
                             <tr>
-                                <td colSpan={4} style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
+                                <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
                                     No categories found.
                                 </td>
                             </tr>
@@ -209,6 +253,9 @@ export default function CategoriesPage() {
                                         <div style={{ fontWeight: "600" }}>{cat.name}</div>
                                     </td>
                                     <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>/{cat.slug}</td>
+                                    <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>
+                                        {getParentName(cat.parentId)}
+                                    </td>
                                     <td style={{ padding: "1.2rem 1.5rem" }}>
                                         <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{0} articles</span>
                                     </td>

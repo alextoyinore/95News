@@ -6,23 +6,27 @@ import FetchMorePosts from "@/components/FetchMorePosts";
 import { formatDate, getAuthorSlug, getDateSlugs } from "@/lib/utils";
 import { notFound } from "next/navigation";
 
-export default async function MonthArchive({ params }: { params: Promise<{ year: string, month: string }> }) {
-    const { year, month } = await params;
+export default async function DayArchive({ params }: { params: Promise<{ year: string, month: string, day: string }> }) {
+    const { year, month, day } = await params;
 
     if (!/^\d{4}$/.test(year)) return notFound();
     if (!/^\d{1,2}$/.test(month)) return notFound();
+    if (!/^\d{1,2}$/.test(day)) return notFound();
 
     const monthNum = parseInt(month, 10);
+    const dayNum = parseInt(day, 10);
+
     if (monthNum < 1 || monthNum > 12) return notFound();
+    if (dayNum < 1 || dayNum > 31) return notFound();
 
-    const dateObj = new Date(parseInt(year), monthNum - 1, 1);
-    const monthName = dateObj.toLocaleString('default', { month: 'long' });
+    const dateObj = new Date(parseInt(year), monthNum - 1, dayNum);
+    const fullDateStr = dateObj.toLocaleDateString('default', { month: 'long', day: 'numeric', year: 'numeric' });
 
-    const startRange = new Date(parseInt(year), monthNum - 1, 1);
-    const endRange = new Date(parseInt(year), monthNum, 0, 23, 59, 59, 999); // Last day of month
+    const startRange = new Date(parseInt(year), monthNum - 1, dayNum, 0, 0, 0);
+    const endRange = new Date(parseInt(year), monthNum - 1, dayNum, 23, 59, 59, 999);
 
-    const title = `Archive: ${monthName} ${year}`;
-    const description = `Browsing through all stories published in ${monthName} ${year}.`;
+    const title = `Archive: ${fullDateStr}`;
+    const description = `Browsing through all stories published on ${fullDateStr}.`;
 
     const limitCount = 20;
 

@@ -23,15 +23,17 @@ export default function SocialSidebar() {
                 {socialLinks.map((link) => (
                     <a
                         key={link.platform}
-                        href="#"
+                        href={`https://${link.platform.toLowerCase()}.com/95news.ng`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         style={{
                             display: "flex",
                             flexDirection: "column",
                             alignItems: "center",
                             padding: "1rem",
                             borderRadius: "var(--radius-sm)",
-                            backgroundColor: "var(--bg-tertiary)", // Monochrome background
-                            color: "var(--text-primary)", // Monochrome text
+                            backgroundColor: "var(--bg-tertiary)",
+                            color: "var(--text-primary)",
                             textDecoration: "none",
                             transition: "transform 0.2s",
                             border: "1px solid var(--border)"
@@ -39,7 +41,7 @@ export default function SocialSidebar() {
                         onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
                         onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
                     >
-                        <span style={{ fontSize: "1.2rem", fontWeight: "800", marginBottom: "0.2rem", filter: "grayscale(100%)" }}>{link.icon}</span>
+                        <span style={{ fontSize: "1.2rem", fontWeight: "800", marginBottom: "0.2rem" }}>{link.icon}</span>
                         <span style={{ fontSize: "0.9rem", fontWeight: "700" }}>{link.count}</span>
                         <span style={{ fontSize: "0.7rem", opacity: 0.8 }}>Followers</span>
                     </a>

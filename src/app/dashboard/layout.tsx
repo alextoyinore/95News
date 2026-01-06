@@ -19,16 +19,17 @@ import {
     Menu
 } from "lucide-react";
 import { useState } from "react";
-
 const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Posts", href: "/dashboard/posts", icon: FileText },
     { name: "Categories", href: "/dashboard/categories", icon: Layers },
     { name: "Tags", href: "/dashboard/tags", icon: Hash },
     { name: "Comments", href: "/dashboard/comments", icon: MessageCircle },
-    { name: "Pages", href: "/dashboard/pages", icon: FileText },
+    { name: "Pages", href: "/dashboard/pages", icon: FileText, superuserOnly: true },
+    { name: "Navigation", href: "/dashboard/navigation", icon: Menu, superuserOnly: true },
     { name: "Media", href: "/dashboard/media", icon: ImageIcon },
-    { name: "Layout", href: "/dashboard/layout-builder", icon: Palette },
+    { name: "Layout", href: "/dashboard/layout-builder", icon: Palette, superuserOnly: true },
+    { name: "Users", href: "/dashboard/users", icon: User, superuserOnly: true },
     { name: "Profile", href: "/dashboard/profile", icon: User },
 ];
 
@@ -79,37 +80,39 @@ export default function DashboardLayout({
                     </div>
 
                     <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                        {navItems.map((item) => {
-                            const isActive = pathname === item.href;
-                            return (
-                                <Link key={item.name} href={item.href}>
-                                    <div style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: isCollapsed ? "center" : "flex-start",
-                                        gap: isCollapsed ? "0" : "1rem",
-                                        padding: "0.8rem",
-                                        borderRadius: "var(--radius-sm)",
-                                        color: isActive ? "var(--accent)" : "var(--text-primary)",
-                                        backgroundColor: isActive ? "var(--bg-tertiary)" : "transparent",
-                                        fontWeight: isActive ? "600" : "400",
-                                        transition: "all 0.2s ease",
-                                        position: "relative"
-                                    }} title={isCollapsed ? item.name : ""}>
-                                        <item.icon size={20} style={{ flexShrink: 0 }} />
-                                        {!isCollapsed && (
-                                            <span style={{
-                                                whiteSpace: "nowrap",
-                                                opacity: 1,
-                                                transition: "opacity 0.2s ease"
-                                            }}>
-                                                {item.name}
-                                            </span>
-                                        )}
-                                    </div>
-                                </Link>
-                            );
-                        })}
+                        {navItems
+                            .filter(item => !item.superuserOnly || userRecord?.role === 'superuser')
+                            .map((item) => {
+                                const isActive = pathname === item.href;
+                                return (
+                                    <Link key={item.name} href={item.href}>
+                                        <div style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: isCollapsed ? "center" : "flex-start",
+                                            gap: isCollapsed ? "0" : "1rem",
+                                            padding: "0.8rem",
+                                            borderRadius: "var(--radius-sm)",
+                                            color: isActive ? "var(--accent)" : "var(--text-primary)",
+                                            backgroundColor: isActive ? "var(--bg-tertiary)" : "transparent",
+                                            fontWeight: isActive ? "600" : "400",
+                                            transition: "all 0.2s ease",
+                                            position: "relative"
+                                        }} title={isCollapsed ? item.name : ""}>
+                                            <item.icon size={20} style={{ flexShrink: 0 }} />
+                                            {!isCollapsed && (
+                                                <span style={{
+                                                    whiteSpace: "nowrap",
+                                                    opacity: 1,
+                                                    transition: "opacity 0.2s ease"
+                                                }}>
+                                                    {item.name}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </Link>
+                                );
+                            })}
 
                         {/* Collapse Toggle at Bottom of Nav */}
                         <div

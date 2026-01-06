@@ -40,7 +40,7 @@ export default function SearchPage() {
                 </h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                     {mockResults.map(result => (
-                        <Link key={result.id} href={`/posts/${result.id}`}>
+                        <Link key={result.id} href={`/${result.id}`}>
                             <article className="glass" style={{ padding: "1.5rem", borderRadius: "var(--radius-md)" }}>
                                 <span style={{ color: "var(--accent)", fontWeight: "600", fontSize: "0.8rem", textTransform: "uppercase" }}>
                                     {result.category}

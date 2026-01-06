@@ -6,23 +6,16 @@ import FetchMorePosts from "@/components/FetchMorePosts";
 import { formatDate, getAuthorSlug, getDateSlugs } from "@/lib/utils";
 import { notFound } from "next/navigation";
 
-export default async function MonthArchive({ params }: { params: Promise<{ year: string, month: string }> }) {
-    const { year, month } = await params;
+export default async function YearArchive({ params }: { params: Promise<{ year: string }> }) {
+    const { year } = await params;
 
     if (!/^\d{4}$/.test(year)) return notFound();
-    if (!/^\d{1,2}$/.test(month)) return notFound();
 
-    const monthNum = parseInt(month, 10);
-    if (monthNum < 1 || monthNum > 12) return notFound();
+    const startRange = new Date(parseInt(year), 0, 1); // Jan 1st
+    const endRange = new Date(parseInt(year), 11, 31, 23, 59, 59, 999); // Dec 31st end of day
 
-    const dateObj = new Date(parseInt(year), monthNum - 1, 1);
-    const monthName = dateObj.toLocaleString('default', { month: 'long' });
-
-    const startRange = new Date(parseInt(year), monthNum - 1, 1);
-    const endRange = new Date(parseInt(year), monthNum, 0, 23, 59, 59, 999); // Last day of month
-
-    const title = `Archive: ${monthName} ${year}`;
-    const description = `Browsing through all stories published in ${monthName} ${year}.`;
+    const title = `Archive: ${year}`;
+    const description = `Browsing through all stories published in ${year}.`;
 
     const limitCount = 20;
 

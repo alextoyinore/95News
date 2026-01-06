@@ -1,24 +1,34 @@
 "use client";
 
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const { user, userRecord, loading } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
+
+    const STAFF_ROLES = ['superuser', 'editor', 'writer', 'contributor'];
+    const SUPERUSER_ONLY_PAGES = ['/dashboard/users', '/dashboard/navigation', '/dashboard/layout-builder', '/dashboard/pages'];
 
     useEffect(() => {
         if (!loading) {
             if (!user) {
                 router.push('/login');
-            } else if (userRecord && !['superuser', 'writer'].includes(userRecord.role)) {
-                // If logged in but not staff, redirect or show error
-                // For now, redirect to home or a special unauthorized page
-                router.push('/');
+            } else if (userRecord) {
+                const isStaff = STAFF_ROLES.includes(userRecord.role);
+                const isSuperuser = userRecord.role === 'superuser';
+                const isAccessingRestricted = SUPERUSER_ONLY_PAGES.some(page => pathname.startsWith(page));
+
+                if (!isStaff) {
+                    router.push('/');
+                } else if (isAccessingRestricted && !isSuperuser) {
+                    router.push('/dashboard');
+                }
             }
         }
-    }, [user, userRecord, loading, router]);
+    }, [user, userRecord, loading, router, pathname]);
 
     if (loading) {
         return (
@@ -35,7 +45,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         );
     }
 
-    if (!user || (userRecord && !['superuser', 'writer'].includes(userRecord.role))) {
+    const isStaff = userRecord && ['superuser', 'editor', 'writer', 'contributor'].includes(userRecord.role);
+
+    if (!user || !isStaff) {
         return null;
     }
 

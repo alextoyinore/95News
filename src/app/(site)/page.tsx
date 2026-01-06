@@ -4,78 +4,153 @@ import CategoryHighlight from "@/components/widgets/CategoryHighlight";
 import PostGrid from "@/components/widgets/PostGrid";
 import SocialSidebar from "@/components/widgets/SocialSidebar";
 import Newsletter from "@/components/widgets/Newsletter";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs, limit, orderBy } from "firebase/firestore";
+import { Post, Category, User } from "@/types/firestore";
+import { formatDate, getAuthorSlug } from "@/lib/utils";
 
-const heroPosts = [
-  {
-    id: "h1",
-    title: "The Silent Revolution: How Private Space Agencies are Overtaking National Programs",
-    excerpt: "From reusable rockets to orbital hotels, the final frontier is becoming a commercial playground faster than anyone anticipated.",
-    category: "Tech",
-    author: "James Miller",
-    date: "Dec 20, 2025",
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200"
-  },
-  {
-    id: "h2",
-    title: "Quantum Computing: Breaking the Unbreakable Cryptography",
-    excerpt: "Researchers achieve new milestone in quantum supremacy, threatening the very foundations of digital security.",
-    category: "Tech",
-    author: "Dr. Elena Vance",
-    date: "Dec 18, 2025",
-    image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=1200"
-  },
-  {
-    id: "h3",
-    title: "The Architecture of Dreams: Designing the Cities of 2050",
-    excerpt: "Vertical forests, modular transit, and self-healing materials: how tomorrow's architects are solving the urban crisis.",
-    category: "Lifestyle",
-    author: "Marcello Rossi",
-    date: "Dec 15, 2025",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200"
+async function getCategoryBySlug(slugs: string | string[]) {
+  const slugList = Array.isArray(slugs) ? slugs : [slugs];
+  for (const slug of slugList) {
+    const q = query(collection(db, "categories"), where("slug", "==", slug), limit(1));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      return { id: snap.docs[0].id, ...snap.docs[0].data() } as Category;
+    }
   }
-];
+  return null;
+}
 
-const techPosts = [
-  { id: 1, title: "Apple's Secret AR Project Revealed", excerpt: "New leaks from supply chain sources suggest Apple is finalizing a revolutionary interface that completely bypasses traditional screens, utilizing advanced retinal projection technology to overlay digital information seamlessly onto the physical world.", category: "Tech", author: "Sarah Jenkins", date: "Oct 24", image: "https://images.unsplash.com/photo-1491933382434-500287f9b54b?auto=format&fit=crop&q=80&w=800" },
-  { id: 2, title: "Next-Gen AI Chips Are Here", excerpt: "Nvidia announces new architecture specifically designed for large language models.", category: "Tech", author: "Mark Techson", date: "Oct 23" },
-  { id: 3, title: "Blockchain's Surprising Comeback", excerpt: "Enterprise adoption is driving a new wave of interest in distributed ledgers.", category: "Tech", author: "Jane Chain", date: "Oct 22" },
-  { id: 4, title: "Is 6G Already Around the Corner?", excerpt: "Research teams in Finland achieve record-breaking wireless speeds.", category: "Tech", author: "Speedy Gonzales", date: "Oct 21" },
-];
+async function resolvePostsData(postDocs: Post[]) {
+  if (postDocs.length === 0) return [];
 
-const worldPosts = [
-  { id: 5, title: "Crisis in the Mediterranean: A New Refugee Policy", excerpt: "EU leaders have gathered in Brussels to discuss a controversial new comprehensive plan for maritime security and migration management across the Mediterranean region, aiming to balance humanitarian obligations with stricter border control measures.", category: "World", author: "Hans Mueller", date: "Oct 24", image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=1200" },
-  { id: 6, title: "Amazon Rainforest Sees Record Growth", excerpt: "New satellite data shows promising signs of regeneration in key areas.", category: "World", author: "Green Earth", date: "Oct 23", image: "https://images.unsplash.com/photo-1542601906990-b4d3fb7d5b43?auto=format&fit=crop&q=80&w=800" },
-  { id: 7, title: "The Changing Face of Asian Markets", excerpt: "Emerging economies are reshaping the global financial landscape.", category: "World", author: "Money Maker", date: "Oct 22" },
-  { id: 8, title: "Arctic Passage Opens for Winter Cargo", excerpt: "Reduced ice levels allow for unprecedented winter shipping routes.", category: "World", author: "Ice Man", date: "Oct 21" },
-];
+  const authorIds = Array.from(new Set(postDocs.map(p => p.authorId)));
+  const authors: { [key: string]: { name: string, slug: string } } = {};
 
-const lifestylePosts = [
-  { id: 9, title: "Mindfulness in the Digital Age", excerpt: "How to stay centered when your phone is constantly demanding attention.", category: "Lifestyle", author: "Anna Light", date: "Oct 24", image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=800" },
-  { id: 10, title: "The Return of Vinyl: Why We Crave Physicality", category: "Lifestyle", author: "David Bowie", date: "Oct 23", image: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&q=80&w=800" },
-  { id: 11, title: "Fine Dining Goes Casual", category: "Lifestyle", author: "Gordon R", date: "Oct 22", image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=800" },
-  { id: 12, title: "The Art of Minimalist Living", category: "Lifestyle", author: "Marie K", date: "Oct 21", image: "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?auto=format&fit=crop&q=80&w=800" },
-];
+  for (const id of authorIds) {
+    const userSnap = await getDocs(query(collection(db, "users"), where("id", "==", id), limit(1)));
+    if (!userSnap.empty) {
+      const userData = userSnap.docs[0].data() as User;
+      authors[id] = {
+        name: userData.displayName || userData.email || "Unknown Author",
+        slug: getAuthorSlug(userData)
+      };
+    }
+  }
 
-export default function Home() {
+  const catSnap = await getDocs(collection(db, "categories"));
+  const categoriesMap: { [key: string]: { name: string, slug: string } } = {};
+  catSnap.forEach(doc => {
+    const data = doc.data() as Category;
+    categoriesMap[doc.id] = { name: data.name, slug: data.slug };
+  });
+
+  return postDocs.map(post => ({
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt || "",
+    category: categoriesMap[post.categoryIds?.[0] || ""]?.name || "Article",
+    categorySlug: categoriesMap[post.categoryIds?.[0] || ""]?.slug || "general",
+    author: authors[post.authorId]?.name || "NineToFive Staff",
+    authorId: post.authorId,
+    authorSlug: authors[post.authorId]?.slug || "ninetofive-author",
+    date: formatDate(post.publishedAt || post.createdAt),
+    image: post.featuredImageUrl
+  }));
+}
+
+async function fetchSectionPosts(slugs: string | string[], count: number = 4) {
+  const cat = await getCategoryBySlug(slugs);
+  if (!cat) return [];
+
+  const q = query(
+    collection(db, "posts"),
+    where("categoryIds", "array-contains", cat.id),
+    where("status", "==", "published"),
+    orderBy("createdAt", "desc"),
+    limit(count)
+  );
+  const snap = await getDocs(q);
+  return await resolvePostsData(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
+}
+
+export default async function Home() {
+  // 1. Fetch Hero Posts
+  const heroQuery = query(
+    collection(db, "posts"),
+    where("tagIds", "array-contains", "featured"),
+    where("status", "==", "published"),
+    orderBy("createdAt", "desc"),
+    limit(3)
+  );
+
+  const heroSnap = await getDocs(heroQuery);
+  const heroPosts = await resolvePostsData(heroSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
+
+  // 2. Fetch specific sections
+  const techPosts = await fetchSectionPosts(["technology", "tech"], 4);
+  const businessPosts = await fetchSectionPosts("business", 4);
+  const politicsPosts = await fetchSectionPosts(["politics", "political"], 4);
+  const worldPosts = await fetchSectionPosts("world", 4);
+  const sportsPosts = await fetchSectionPosts("sports", 4);
+
+  // De-duplicate Editorial & Opinion
+  const editorialPostsRaw = await fetchSectionPosts("editorial", 4);
+  const opinionPostsRaw = await fetchSectionPosts("opinion", 4);
+  const combinedEditorial = [...editorialPostsRaw, ...opinionPostsRaw];
+  const uniqueEditorial = Array.from(new Map(combinedEditorial.map(item => [item.id, item])).values()).slice(0, 8);
+
+  const lifestylePosts = await fetchSectionPosts(["lifestyle", "lifestyle-and-culture"], 4);
+
+  // 3. Most Read
+  const popularQuery = query(
+    collection(db, "posts"),
+    where("status", "==", "published"),
+    orderBy("views", "desc"),
+    limit(5)
+  );
+  let popularSnap;
+  try {
+    popularSnap = await getDocs(popularQuery);
+  } catch (e) {
+    popularSnap = await getDocs(query(
+      collection(db, "posts"),
+      where("status", "==", "published"),
+      orderBy("createdAt", "desc"),
+      limit(5)
+    ));
+  }
+  const popularPosts = popularSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+
   return (
-    <div className="container" style={{ padding: "1rem 1.5rem 4rem" }}>
-      {/* Hero Slider */}
-      <HeroSlider posts={heroPosts} />
+    <div className="container site-content" style={{ paddingBottom: "4rem" }}>
+      {heroPosts.length > 0 && <HeroSlider posts={heroPosts} />}
 
-      <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: "3rem" }}>
-        {/* Main Feed */}
+      <div className="home-grid" style={{
+        display: "grid",
+        gap: "3rem",
+        marginTop: heroPosts.length === 0 ? "2rem" : "0"
+      }}>
         <main>
-          <CategoryHighlight title="Tech" posts={techPosts} />
+          <CategoryHighlight title="Technology" posts={techPosts} />
+          {businessPosts.length > 0 && <CategoryHighlight title="Business" posts={businessPosts} />}
+
+          {politicsPosts.length > 0 && (
+            <div style={{ margin: "4rem 0" }}>
+              <CategoryHighlight title="Politics" posts={politicsPosts} />
+            </div>
+          )}
 
           <div style={{ margin: "4rem 0" }}>
             <Newsletter />
           </div>
 
           <CategoryHighlight title="World" posts={worldPosts} />
+          {sportsPosts.length > 0 && <CategoryHighlight title="Sports" posts={sportsPosts} />}
         </main>
 
-        {/* Sidebar */}
-        <aside style={{ position: "sticky", top: "2rem", height: "fit-content" }}>
+        <aside className="home-sidebar" style={{ position: "sticky", top: "6rem", alignSelf: "flex-start" }}>
           <SocialSidebar />
 
           <div className="glass" style={{ padding: "1.5rem", borderRadius: "var(--radius-md)", marginBottom: "3rem" }}>
@@ -83,15 +158,11 @@ export default function Home() {
               Most Read
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-                  <span style={{ fontSize: "1.5rem", fontWeight: "800", color: "var(--accent)", opacity: 0.5 }}>0{i}</span>
-                  <Link href={`/posts/popular-${i}`} style={{ fontSize: "0.95rem", fontWeight: "600", lineHeight: "1.4" }}>
-                    {i === 1 ? "The Hidden Costs of Free Streaming Services" :
-                      i === 2 ? "Why Everyone is Moving to Decentralized Social Media" :
-                        i === 3 ? "Understanding the Paradox of Modern Productivity" :
-                          i === 4 ? "A Guide to the Best Hidden Coffee Shops in Kyoto" :
-                            "The Surprising Health Benefits of Cold Plunging"}
+              {popularPosts.map((post, i) => (
+                <div key={post.id} style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+                  <span style={{ fontSize: "1.5rem", fontWeight: "800", color: "var(--accent)", opacity: 0.5 }}>0{i + 1}</span>
+                  <Link href={`/${post.slug}`} style={{ fontSize: "0.95rem", fontWeight: "600", lineHeight: "1.4" }}>
+                    {post.title}
                   </Link>
                 </div>
               ))}
@@ -107,16 +178,47 @@ export default function Home() {
           }}>
             <h3 style={{ marginBottom: "1rem" }}>95News Premium</h3>
             <p style={{ fontSize: "0.9rem", opacity: 0.9, marginBottom: "1.5rem" }}>
-              Get unlimited access to all stories and exclusive industry reports.
+              Join NineToFive Premium for exclusive industry reports and deep-dives.
             </p>
             <button className="btn" style={{ backgroundColor: "white", color: "black", width: "100%", borderRadius: "var(--radius-sm)" }}>
-              Join Now
+              Sign Up
             </button>
           </div>
         </aside>
       </div>
 
-      <PostGrid title="Lifestyle & Culture" posts={lifestylePosts} columns={4} />
+      {uniqueEditorial.length > 0 && (
+        <div style={{ margin: "4rem 0" }}>
+          <PostGrid title="Editorial & Opinion" posts={uniqueEditorial} columns={4} />
+        </div>
+      )}
+
+      {lifestylePosts.length > 0 && (
+        <PostGrid title="Lifestyle & Culture" posts={lifestylePosts} columns={4} />
+      )}
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .home-grid {
+          grid-template-columns: 3fr 1fr;
+        }
+        @media (max-width: 1024px) {
+          .home-grid {
+            grid-template-columns: 1fr;
+          }
+          .home-sidebar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+          }
+        }
+        @media (max-width: 640px) {
+          .home-sidebar {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}} />
     </div>
   );
 }

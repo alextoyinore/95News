@@ -4,7 +4,7 @@ export interface User {
     email: string;
     photoURL?: string;
     bio?: string;
-    role: 'superuser' | 'writer' | 'editor' | 'subscriber';
+    role: 'superuser' | 'editor' | 'writer' | 'contributor' | 'subscriber';
 }
 
 export interface Page {
@@ -29,6 +29,7 @@ export interface Category {
     id: string;
     name: string;
     slug: string;
+    parentId?: string;
 }
 
 export interface Tag {

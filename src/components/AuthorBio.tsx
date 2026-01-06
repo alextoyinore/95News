@@ -1,6 +1,7 @@
 import React from "react";
 
 interface Author {
+    id?: string;
     name: string;
     bio: string;
     avatar: string;
@@ -9,6 +10,8 @@ interface Author {
 interface AuthorBioProps {
     author: Author;
 }
+
+import Link from "next/link";
 
 export default function AuthorBio({ author }: AuthorBioProps) {
     return (
@@ -35,17 +38,29 @@ export default function AuthorBio({ author }: AuthorBioProps) {
                 <h4 style={{ marginBottom: "0.5rem", fontSize: "1.2rem", fontWeight: "700" }}>About {author.name}</h4>
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.6" }}>{author.bio}</p>
                 <div style={{ marginTop: "1rem" }}>
-                    <button style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--accent)",
-                        fontSize: "0.85rem",
-                        fontWeight: "600",
-                        cursor: "pointer",
-                        padding: 0
-                    }}>
-                        View all articles by {author.name.split(' ')[0]} →
-                    </button>
+                    {author.id ? (
+                        <Link href={`/author/${author.id}`} style={{
+                            color: "var(--accent)",
+                            fontSize: "0.85rem",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            textDecoration: "none"
+                        }}>
+                            View all articles by {author.name.split(' ')[0]} →
+                        </Link>
+                    ) : (
+                        <button style={{
+                            background: "none",
+                            border: "none",
+                            color: "var(--accent)",
+                            fontSize: "0.85rem",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            padding: 0
+                        }}>
+                            View all articles by {author.name.split(' ')[0]} →
+                        </button>
+                    )}
                 </div>
             </div>
         </section>

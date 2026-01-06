@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import PostCard from "../PostCard";
 
@@ -16,7 +18,7 @@ export default function CategoryHighlight({ title, posts }: CategoryHighlightPro
         <section style={{ marginBottom: "4rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "2rem", borderBottom: "1px solid var(--border)" }}>
                 <h3 style={{
-                    fontSize: "1.8rem",
+                    fontSize: "clamp(1.4rem, 2.5vw, 1.8rem)",
                     paddingBottom: "0.5rem",
                     borderBottom: "3px solid var(--accent)",
                     marginBottom: "-1px",
@@ -29,7 +31,7 @@ export default function CategoryHighlight({ title, posts }: CategoryHighlightPro
                 </Link>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "55fr 45fr", gap: "2.5rem" }}>
+            <div className="highlight-grid" style={{ display: "grid", gap: "2.5rem" }}>
                 <div style={{ height: "100%" }}>
                     <PostCard post={mainPost} />
                 </div>
@@ -44,6 +46,17 @@ export default function CategoryHighlight({ title, posts }: CategoryHighlightPro
                     ))}
                 </div>
             </div>
+
+            <style jsx>{`
+                .highlight-grid {
+                    grid-template-columns: 55fr 45fr;
+                }
+                @media (max-width: 768px) {
+                    .highlight-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            `}</style>
         </section>
     );
 }

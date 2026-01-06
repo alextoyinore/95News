@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function Newsletter() {
     return (
-        <div className="glass" style={{
+        <div className="newsletter-container glass" style={{
             padding: "4rem 2rem",
             borderRadius: "var(--radius-lg)",
             textAlign: "center",
@@ -13,16 +13,16 @@ export default function Newsletter() {
             margin: "4rem 0"
         }}>
 
-            <h2 style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>Stay Ahead of the Curve</h2>
+            <h2 style={{ fontSize: "clamp(1.8rem, 4vw, 2.5rem)", marginBottom: "1rem" }}>Stay Ahead of the Curve</h2>
             <p style={{
                 color: "var(--text-secondary)",
-                fontSize: "1.2rem",
+                fontSize: "clamp(1rem, 1.5vw, 1.2rem)",
                 maxWidth: "600px",
                 margin: "0 auto 2.5rem"
             }}>
                 Join 50,000+ subscribers who get our curated digest of tech, culture, and business every morning.
             </p>
-            <form style={{
+            <form className="newsletter-form" style={{
                 display: "flex",
                 gap: "1rem",
                 maxWidth: "500px",
@@ -49,6 +49,22 @@ export default function Newsletter() {
             <p style={{ marginTop: "1.5rem", fontSize: "0.85rem", color: "var(--text-muted)" }}>
                 No spam. Ever. Unsubscribe with one click.
             </p>
+
+            <style jsx>{`
+                @media (max-width: 640px) {
+                    .newsletter-container {
+                        padding: 3rem 1.5rem;
+                        border-radius: var(--radius-md);
+                    }
+                    .newsletter-form {
+                        flex-direction: column;
+                    }
+                    .newsletter-form button {
+                        width: 100%;
+                        padding: 1rem !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

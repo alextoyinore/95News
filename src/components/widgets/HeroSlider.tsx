@@ -22,10 +22,9 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
     const currentPost = posts[currentIndex];
 
     return (
-        <div style={{
+        <div className="hero-slider" style={{
             position: "relative",
             marginBottom: "4rem",
-            height: "420px",
             overflow: "hidden",
             borderRadius: "var(--radius-lg)",
         }}>
@@ -51,59 +50,58 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
                 left: 0,
                 width: "100%",
                 height: "100%",
-                background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 100%)",
+                background: "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 100%)",
                 zIndex: 1
             }} />
 
             {/* Content Container */}
-            <div className="container" style={{
+            <div className="container hero-content" style={{
                 position: "relative",
                 zIndex: 2,
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "flex-end",
-                padding: "4rem 2rem",
                 color: "white"
             }}>
                 <div style={{ maxWidth: "800px" }}>
                     <span style={{
                         backgroundColor: "var(--accent)",
-                        padding: "0.5rem 1rem",
+                        padding: "0.4rem 0.8rem",
                         borderRadius: "var(--radius-sm)",
-                        fontSize: "0.85rem",
+                        fontSize: "0.75rem",
                         fontWeight: "700",
                         textTransform: "uppercase",
-                        marginBottom: "1.5rem",
+                        marginBottom: "1rem",
                         display: "inline-block"
                     }}>
                         {currentPost.category}
                     </span>
 
-                    <Link href={`/posts/${currentPost.id}`}>
-                        <h1 style={{
-                            fontSize: "2.8rem",
+                    <Link href={`/${currentPost.slug || currentPost.id}`}>
+                        <h1 className="hero-title" style={{
+                            fontSize: "clamp(1.8rem, 5vw, 3rem)",
                             fontWeight: "800",
                             lineHeight: "1.1",
-                            marginBottom: "1.5rem",
+                            marginBottom: "1rem",
                             textShadow: "0 2px 10px rgba(0,0,0,0.5)"
                         }}>
                             {currentPost.title}
                         </h1>
                     </Link>
 
-                    <p style={{
-                        fontSize: "1.2rem",
+                    <p className="hero-excerpt" style={{
+                        fontSize: "clamp(1rem, 1.5vw, 1.15rem)",
                         opacity: 0.9,
                         marginBottom: "2rem",
                         lineHeight: "1.6",
-                        maxWidth: "600px"
+                        maxWidth: "600px",
                     }}>
                         {currentPost.excerpt}
                     </p>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", fontSize: "0.9rem" }}>
-                        <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem", fontSize: "0.85rem" }}>
+                        <div style={{ width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700" }}>
                             {currentPost.author[0]}
                         </div>
                         <div>
@@ -117,20 +115,20 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
             {/* Navigation Dots */}
             <div style={{
                 position: "absolute",
-                bottom: "2rem",
-                right: "2rem",
+                bottom: "1.5rem",
+                right: "1.5rem",
                 zIndex: 3,
                 display: "flex",
-                gap: "0.8rem"
+                gap: "0.6rem"
             }}>
                 {posts.map((_, idx) => (
                     <button
                         key={idx}
                         onClick={() => setCurrentIndex(idx)}
                         style={{
-                            width: idx === currentIndex ? "30px" : "10px",
-                            height: "10px",
-                            borderRadius: "5px",
+                            width: idx === currentIndex ? "24px" : "8px",
+                            height: "8px",
+                            borderRadius: "4px",
                             backgroundColor: idx === currentIndex ? "var(--accent)" : "rgba(255,255,255,0.3)",
                             border: "none",
                             cursor: "pointer",
@@ -139,6 +137,44 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
                     />
                 ))}
             </div>
+
+            <style jsx>{`
+                .hero-slider {
+                    height: 500px;
+                }
+                .hero-content {
+                    padding: 4rem 3rem;
+                }
+                .hero-title {
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+                @media (max-width: 768px) {
+                    .hero-slider {
+                        height: 400px;
+                        border-radius: var(--radius-md);
+                    }
+                    .hero-content {
+                        padding: 3rem 1.5rem;
+                    }
+                    .hero-excerpt {
+                        display: -webkit-box;
+                        -webkit-line-clamp: 2;
+                        -webkit-box-orient: vertical;
+                        overflow: hidden;
+                    }
+                }
+                @media (max-width: 480px) {
+                    .hero-slider {
+                        height: 350px;
+                    }
+                    .hero-excerpt {
+                        display: none;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
