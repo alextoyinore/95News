@@ -55,7 +55,7 @@ async function resolvePostsData(postDocs: Post[]) {
     author: authors[post.authorId]?.name || "95News",
     authorId: post.authorId,
     authorSlug: authors[post.authorId]?.slug || "95news-author",
-    date: formatDate(post.publishedAt || post.createdAt),
+    date: formatDate(post.createdAt),
     image: post.featuredImageUrl
   }));
 }

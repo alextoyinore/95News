@@ -17,7 +17,7 @@ import { formatDate, getAuthorSlug, getDateSlugs } from "@/lib/utils";
 
 interface AuthorInfo {
     name: string;
-    slug: string; // Keeping for now
+    slug: string;
     id?: string;
 }
 
@@ -33,7 +33,7 @@ interface FetchMorePostsProps {
     context: {
         category?: string;
         categorySlug?: string;
-        author?: string; // For author archive
+        author?: string;
         authorSlug?: string;
     };
 }
@@ -123,7 +123,7 @@ export default function FetchMorePosts({ initialPosts, queryConstraints, limitCo
                 const newPosts = await Promise.all(nextSnapshot.docs.map(async doc => {
                     const data = { id: doc.id, ...doc.data() } as Post;
                     const auth = await resolveAuthor(data.authorId);
-                    const { year, month, day } = getDateSlugs(data.publishedAt || data.createdAt);
+                    const { year, month, day } = getDateSlugs(data.createdAt);
 
                     return {
                         id: data.id,
@@ -133,9 +133,9 @@ export default function FetchMorePosts({ initialPosts, queryConstraints, limitCo
                         category: context.category || "Article",
                         categorySlug: context.categorySlug,
                         author: context.author || auth.name,
-                        authorId: data.authorId, // Add authorId
+                        authorId: data.authorId,
                         authorSlug: context.authorSlug || auth.slug,
-                        date: formatDate(data.publishedAt || data.createdAt),
+                        date: formatDate(data.createdAt),
                         dateSlug: `/archive/${year}/${month}/${day}`,
                         image: data.featuredImageUrl
                     };

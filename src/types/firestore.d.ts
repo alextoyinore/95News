@@ -55,9 +55,9 @@ export interface Post {
     contributors?: string[];
     categoryIds?: string[];
     tagIds?: string[];
-    createdAt: string;
-    updatedAt?: string;
-    publishedAt?: string;
+    createdAt: any;
+    updatedAt?: any;
+    publishedAt?: any;
     isBreaking?: boolean;
     isFeatured?: boolean;
     views?: number;

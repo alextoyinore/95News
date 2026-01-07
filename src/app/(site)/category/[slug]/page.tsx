@@ -52,7 +52,7 @@ export default async function CategoryArchive({ params }: { params: Promise<{ sl
     }
 
     const initialPosts = postDocs.map(post => {
-        const { year, month, day } = getDateSlugs(post.publishedAt || post.createdAt);
+        const { year, month, day } = getDateSlugs(post.createdAt);
         return {
             id: post.id,
             slug: post.slug,
@@ -63,7 +63,7 @@ export default async function CategoryArchive({ params }: { params: Promise<{ sl
             author: authors[post.authorId]?.name || "95News",
             authorId: post.authorId,
             authorSlug: authors[post.authorId]?.slug || "95news",
-            date: formatDate(post.publishedAt || post.createdAt),
+            date: formatDate(post.createdAt),
             dateSlug: `/archive/${year}/${month}/${day}`,
             image: post.featuredImageUrl
         };

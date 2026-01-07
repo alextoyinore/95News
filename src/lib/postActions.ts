@@ -1,40 +1,52 @@
-"use client";
-
-import { collection, addDoc, deleteDoc, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, query, where, getDocs, doc, updateDoc, increment, getDoc, setDoc, getCountFromServer } from 'firebase/firestore';
 import { db } from './firebase';
 
-export async function incrementPostViews(postId: string) {
+export async function incrementPostViews(postId: string, ip?: string) {
+    if (!ip) return;
     try {
-        const postRef = doc(db, 'posts', postId);
-        await updateDoc(postRef, {
-            views: increment(1)
-        });
-        // Also add to sub-collection for analytics
-        await addDoc(collection(db, 'posts', postId, 'views'), {
-            timestamp: new Date().toISOString()
-        });
+        const viewRef = doc(db, 'posts', postId, 'views', ip.replace(/\./g, '_')); // Replace dots for safety in doc ID if needed, but Firebase allows them. Let's use IP as ID to avoid duplicates from same IP.
+        const viewDoc = await getDoc(viewRef);
+
+        if (!viewDoc.exists()) {
+            await setDoc(viewRef, {
+                ip,
+                timestamp: new Date().toISOString()
+            });
+
+            // Optionally still increment a counter on the root doc for faster reads
+            const postRef = doc(db, 'posts', postId);
+            await updateDoc(postRef, {
+                views: increment(1)
+            });
+        }
     } catch (error) {
         console.error('Error incrementing views:', error);
     }
 }
 
+export async function getPostViewCount(postId: string): Promise<number> {
+    try {
+        const viewsSnapshot = await getCountFromServer(collection(db, 'posts', postId, 'views'));
+        return viewsSnapshot.data().count;
+    } catch (error) {
+        console.error('Error getting view count:', error);
+        return 0;
+    }
+}
+
 export async function togglePostLike(postId: string, userId: string): Promise<boolean> {
     try {
-        const likeRef = doc(db, 'posts', postId, 'likes', userId);
-        const likeDoc = await getDocs(query(collection(db, 'posts', postId, 'likes'), where('userId', '==', userId))); // Actually accessing by ID directly is better if we use userId as docId
-
-        // Use userId as document ID for easier toggling
         const likeDocRef = doc(db, 'posts', postId, 'likes', userId);
-        const docSnap = await import('firebase/firestore').then(mod => mod.getDoc(likeDocRef));
+        const docSnap = await getDoc(likeDocRef);
 
         if (docSnap.exists()) {
             await deleteDoc(likeDocRef);
             return false;
         } else {
-            await import('firebase/firestore').then(mod => mod.setDoc(likeDocRef, {
+            await setDoc(likeDocRef, {
                 userId,
                 createdAt: new Date().toISOString()
-            }));
+            });
             return true;
         }
     } catch (error) {
@@ -45,7 +57,7 @@ export async function togglePostLike(postId: string, userId: string): Promise<bo
 
 export async function getPostLikeCount(postId: string): Promise<number> {
     try {
-        const likesSnapshot = await import('firebase/firestore').then(mod => mod.getCountFromServer(collection(db, 'posts', postId, 'likes')));
+        const likesSnapshot = await getCountFromServer(collection(db, 'posts', postId, 'likes'));
         return likesSnapshot.data().count;
     } catch (error) {
         console.error('Error getting like count:', error);
@@ -56,7 +68,7 @@ export async function getPostLikeCount(postId: string): Promise<number> {
 export async function checkUserLiked(postId: string, userId: string): Promise<boolean> {
     try {
         const likeDocRef = doc(db, 'posts', postId, 'likes', userId);
-        const docSnap = await import('firebase/firestore').then(mod => mod.getDoc(likeDocRef));
+        const docSnap = await getDoc(likeDocRef);
         return docSnap.exists();
     } catch (error) {
         console.error('Error checking user like:', error);

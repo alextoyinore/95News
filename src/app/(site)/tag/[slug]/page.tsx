@@ -25,13 +25,14 @@ const getAuthorSlug = (user: User) => {
 const getDateSlugs = (dateVal: any) => {
     try {
         const d = dateVal && typeof dateVal.toDate === 'function' ? dateVal.toDate() : new Date(dateVal);
-        if (isNaN(d.getTime())) return { year: "2026", month: "january" };
+        if (isNaN(d.getTime())) return { year: "2026", month: "january", day: "01" };
         return {
             year: d.getFullYear().toString(),
-            month: d.toLocaleString('default', { month: 'long' }).toLowerCase()
+            month: d.toLocaleString('default', { month: 'long' }).toLowerCase(),
+            day: d.getDate().toString().padStart(2, '0')
         };
     } catch (e) {
-        return { year: "2026", month: "january" };
+        return { year: "2026", month: "january", day: "01" };
     }
 };
 
@@ -81,7 +82,7 @@ export default async function TagArchive({ params }: { params: Promise<{ slug: s
     }
 
     const initialPosts = postDocs.map(post => {
-        const { year, month } = getDateSlugs(post.publishedAt || post.createdAt);
+        const { year, month, day } = getDateSlugs(post.createdAt);
         return {
             id: post.id,
             slug: post.slug,
@@ -91,8 +92,8 @@ export default async function TagArchive({ params }: { params: Promise<{ slug: s
             author: authors[post.authorId]?.name || "95News",
             authorId: post.authorId,
             authorSlug: authors[post.authorId]?.slug || "95news",
-            date: formatDate(post.publishedAt || post.createdAt),
-            dateSlug: `/archive/${year}/${month}`,
+            date: formatDate(post.createdAt),
+            dateSlug: `/archive/${year}/${month}/${day}`,
             image: post.featuredImageUrl
         };
     });

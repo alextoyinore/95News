@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { collection, getDocs, query, where, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Post, User, Category } from "@/types/firestore";
@@ -7,12 +8,14 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import AuthorBio from "@/components/AuthorBio";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
 import PostContentRenderer from "@/components/PostContentRenderer";
-import { formatDate, getAuthorSlug } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import Newsletter from "@/components/widgets/Newsletter";
 import AudioPlayer from "@/components/AudioPlayer";
 import ShareButtons from "@/components/ShareButtons";
 import PostMetadata from "@/components/PostMetadata";
 import CommentSection from "@/components/CommentSection";
+import RelatedPosts from "@/components/RelatedPosts";
+import { incrementPostViews } from "@/lib/postActions";
 
 interface ArticlePageProps {
     params: { slug: string };
@@ -76,7 +79,21 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
     const authorDisplayName = post.author?.displayName || post.author?.email || "95News";
     const authorId = post.author?.id;
-    const currentUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/${slug}`;
+
+    // Dynamically detect domain and IP
+    const headersList = await headers();
+    const host = headersList.get('host') || 'localhost:3000';
+    const proto = headersList.get('x-forwarded-proto') || 'http';
+    const currentUrl = `${proto}://${host}/${slug}`;
+
+    // Track View
+    const forwardedFor = headersList.get('x-forwarded-for');
+    const ip = forwardedFor ? forwardedFor.split(',')[0] : '127.0.0.1';
+    await incrementPostViews(post.id, ip);
+
+    // Serialize timestamps for Client Components
+    const serializedCreatedAt = post.createdAt ? (typeof post.createdAt === 'string' ? post.createdAt : post.createdAt.toDate().toISOString()) : new Date().toISOString();
+    const serializedPublishedAt = post.publishedAt ? (typeof post.publishedAt === 'string' ? post.publishedAt : post.publishedAt.toDate().toISOString()) : undefined;
 
     return (
         <>
@@ -112,9 +129,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                 display: "flex",
                                 alignItems: "center",
                                 gap: "1.5rem",
-                                paddingBottom: "1.5rem",
-                                borderBottom: "1px solid var(--border)",
-                                flexWrap: "wrap"
+                                flexWrap: "wrap",
+                                marginBottom: "1.5rem"
                             }}>
                                 <Link href={authorId ? `/author/${authorId}` : "#"} style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
                                     <div style={{
@@ -136,7 +152,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                             {authorDisplayName}
                                         </div>
                                         <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
-                                            {formatDate(post.publishedAt || post.createdAt)}
+                                            {formatDate(post.createdAt)}
                                         </div>
                                     </div>
                                 </Link>
@@ -159,9 +175,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
                         <PostMetadata
                             postId={post.id}
-                            publishedAt={post.publishedAt ? (typeof post.publishedAt === 'string' ? post.publishedAt : (post.publishedAt as any).toDate().toISOString()) : undefined}
-                            createdAt={typeof post.createdAt === 'string' ? post.createdAt : (post.createdAt as any).toDate().toISOString()}
-                            views={post.views}
+                            publishedAt={serializedPublishedAt}
+                            createdAt={serializedCreatedAt}
                         />
 
                         {post.audioUrl && (
@@ -175,7 +190,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                     alt={post.title}
                                     style={{
                                         width: "100%",
-                                        height: "auto",
+                                        aspectRatio: "16 / 9",
                                         borderRadius: "var(--radius-lg)",
                                         objectFit: "cover"
                                     }}
@@ -194,14 +209,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                             </figure>
                         )}
 
-                        <div className="article-content">
+                        <div className="article-content" style={{ marginBottom: "4rem" }}>
                             <PostContentRenderer content={post.content} />
                         </div>
 
                         <div style={{
-                            marginTop: "4rem",
                             paddingTop: "2rem",
-                            borderTop: "1px solid var(--border)"
+                            borderTop: "1px solid var(--border)",
+                            marginBottom: "4rem"
                         }}>
                             <ShareButtons url={currentUrl} title={post.title} />
                         </div>
@@ -219,6 +234,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     <Newsletter />
 
                     <CommentSection postId={post.id} />
+
+                    {post.categoryIds && post.categoryIds.length > 0 && (
+                        <RelatedPosts categoryId={post.categoryIds[0]} currentPostId={post.id} />
+                    )}
                 </div>
             </div>
         </>

@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 interface Author {
     id?: string;
@@ -11,29 +12,27 @@ interface AuthorBioProps {
     author: Author;
 }
 
-import Link from "next/link";
-
 export default function AuthorBio({ author }: AuthorBioProps) {
     return (
-        <section className="glass" style={{
+        <section className="glass author-bio-container" style={{
             marginTop: "5rem",
             padding: "2.5rem",
-            borderRadius: "var(--radius-lg)",
-            display: "flex",
-            gap: "2rem",
-            alignItems: "center"
+            borderRadius: "var(--radius-lg)"
         }}>
-            <img
-                src={author.avatar}
-                alt={author.name}
-                style={{
-                    width: "80px",
-                    height: "80px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: "2px solid var(--accent)"
-                }}
-            />
+            <div style={{ flexShrink: 0 }}>
+                <img
+                    src={author.avatar}
+                    alt={author.name}
+                    style={{
+                        width: "120px",
+                        height: "120px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        border: "2px solid var(--accent)",
+                        display: "block"
+                    }}
+                />
+            </div>
             <div>
                 <h4 style={{ marginBottom: "0.5rem", fontSize: "1.2rem", fontWeight: "700" }}>About {author.name}</h4>
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.6" }}>{author.bio}</p>

@@ -54,7 +54,7 @@ export default async function MonthArchive({ params }: { params: Promise<{ year:
     }
 
     const initialPosts = postDocs.map(post => {
-        const { year: pYear, month: pMonth } = getDateSlugs(post.publishedAt || post.createdAt);
+        const { year: pYear, month: pMonth, day: pDay } = getDateSlugs(post.createdAt);
         return {
             id: post.id,
             slug: post.slug,
@@ -64,8 +64,8 @@ export default async function MonthArchive({ params }: { params: Promise<{ year:
             author: authors[post.authorId]?.name || "95News",
             authorId: post.authorId,
             authorSlug: authors[post.authorId]?.slug || "95news",
-            date: formatDate(post.publishedAt || post.createdAt),
-            dateSlug: `/archive/${pYear}/${pMonth}`,
+            date: formatDate(post.createdAt),
+            dateSlug: `/archive/${pYear}/${pMonth}/${pDay}`,
             image: post.featuredImageUrl
         };
     });

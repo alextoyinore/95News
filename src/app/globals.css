@@ -240,6 +240,20 @@ img {
   padding-top: 3rem;
 }
 
+.author-bio-container {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+@media (max-width: 640px) {
+    .author-bio-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+}
+
 /* Responsive Table Support */
 .table-wrapper {
   overflow-x: auto;

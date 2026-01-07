@@ -10,20 +10,31 @@ interface ShareButtonsProps {
 export default function ShareButtons({ url, title }: ShareButtonsProps) {
     const [copied, setCopied] = useState(false);
     const [canShare, setCanShare] = useState(false);
+    const [effectiveUrl, setEffectiveUrl] = useState(url);
 
     React.useEffect(() => {
         setCanShare(typeof navigator !== 'undefined' && 'share' in navigator);
-    }, []);
+
+        // Correct URL on client side if it's relative or localhost
+        if (typeof window !== 'undefined') {
+            if (url.startsWith('/') || url.includes('localhost')) {
+                const path = url.startsWith('/') ? url : new URL(url).pathname;
+                setEffectiveUrl(window.location.origin + path);
+            } else {
+                setEffectiveUrl(url);
+            }
+        }
+    }, [url]);
 
     const shareLinks = {
-        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-        linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`
+        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(effectiveUrl)}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(effectiveUrl)}`,
+        linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(effectiveUrl)}`
     };
 
     const copyToClipboard = async () => {
         try {
-            await navigator.clipboard.writeText(url);
+            await navigator.clipboard.writeText(effectiveUrl);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
@@ -37,7 +48,7 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
                 // @ts-ignore
                 await navigator.share({
                     title: title,
-                    url: url
+                    url: effectiveUrl
                 });
             } catch (err) {
                 console.error('Error sharing:', err);

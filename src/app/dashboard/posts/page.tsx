@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter, QueryConstraint, getCountFromServer, where, updateDoc, addDoc } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter, QueryConstraint, getCountFromServer, where, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Post } from "@/types/firestore";
 import DashboardPagination from "@/components/DashboardPagination";
@@ -175,7 +175,8 @@ export default function PostsPage() {
             setPosts(posts.map(p => p.id === post.id ? { ...p, isBreaking: newValue } : p));
             try {
                 await updateDoc(doc(db, "posts", post.id), {
-                    isBreaking: newValue
+                    isBreaking: newValue,
+                    updatedAt: serverTimestamp()
                 });
             } catch (error) {
                 console.error("Error updating isBreaking:", error);
@@ -205,7 +206,8 @@ export default function PostsPage() {
 
             try {
                 await updateDoc(doc(db, "posts", post.id), {
-                    tagIds: newTags
+                    tagIds: newTags,
+                    updatedAt: serverTimestamp()
                 });
             } catch (error) {
                 console.error("Error updating featured tag:", error);
@@ -224,12 +226,12 @@ export default function PostsPage() {
         try {
             const updateData: any = {
                 status: newStatus,
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             };
 
             // If moving to published, set publishedAt if not already set
             if (newStatus === 'published' && !post.publishedAt) {
-                updateData.publishedAt = new Date().toISOString();
+                updateData.publishedAt = serverTimestamp();
             }
 
             await updateDoc(doc(db, "posts", post.id), updateData);

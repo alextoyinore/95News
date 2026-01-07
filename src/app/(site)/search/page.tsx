@@ -111,7 +111,7 @@ function SearchResults() {
             excerpt: post.excerpt,
             category: catMap[post.categoryIds?.[0] || ''] || "Uncategorized",
             author: authorsMap[post.authorId]?.name || "95News",
-            date: formatDate(post.publishedAt || post.createdAt),
+            date: formatDate(post.createdAt),
             image: post.featuredImageUrl
         }));
 
@@ -265,7 +265,8 @@ function SearchResults() {
                 )}
             </div>
 
-            <style jsx global>{`
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .post-card-hover {
                     transition: transform 0.2s ease, box-shadow 0.2s ease;
                 }
@@ -273,7 +274,7 @@ function SearchResults() {
                     transform: translateY(-2px);
                     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
                 }
-            `}</style>
+            `}} />
         </div>
     );
 }

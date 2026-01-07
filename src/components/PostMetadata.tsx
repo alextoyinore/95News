@@ -2,27 +2,28 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { togglePostLike, getPostLikeCount, checkUserLiked } from '@/lib/postActions';
+import { togglePostLike, getPostLikeCount, checkUserLiked, getPostViewCount } from '@/lib/postActions';
 import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
 interface PostMetadataProps {
     postId: string;
-    publishedAt?: string;
-    createdAt: string;
-    views?: number;
+    publishedAt?: any;
+    createdAt: any;
 }
 
-export default function PostMetadata({ postId, publishedAt, createdAt, views = 0 }: PostMetadataProps) {
+export default function PostMetadata({ postId, publishedAt, createdAt }: PostMetadataProps) {
     const { user } = useAuth();
     const [likeCount, setLikeCount] = useState(0);
+    const [viewCount, setViewCount] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-        // Fetch initial like count
+        // Fetch initial counts
         getPostLikeCount(postId).then(setLikeCount);
+        getPostViewCount(postId).then(setViewCount);
 
         // Check if user has liked
         if (user) {
@@ -72,7 +73,7 @@ export default function PostMetadata({ postId, publishedAt, createdAt, views = 0
                     <line x1="8" y1="2" x2="8" y2="6"></line>
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-                <span>{formatDate(publishedAt || createdAt)}</span>
+                <span>{formatDate(createdAt)}</span>
             </div>
 
             <div style={{
@@ -86,7 +87,7 @@ export default function PostMetadata({ postId, publishedAt, createdAt, views = 0
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                     <circle cx="12" cy="12" r="3"></circle>
                 </svg>
-                <span>{views.toLocaleString()} views</span>
+                <span>{viewCount.toLocaleString()} views</span>
             </div>
 
             <button

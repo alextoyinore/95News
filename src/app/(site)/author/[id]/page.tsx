@@ -39,23 +39,23 @@ export default async function AuthorArchive({ params }: AuthorArchiveProps) {
     const authors: { [key: string]: { name: string, slug: string } } = {
         [author.id]: {
             name: authorName,
-            slug: getAuthorSlug(author) // Keep slug for other uses if needed, though routing uses ID now
+            slug: getAuthorSlug(author)
         }
     };
 
     const initialPosts = postDocs.map(post => {
-        const { year, month } = getDateSlugs(post.publishedAt || post.createdAt);
+        const { year, month, day } = getDateSlugs(post.createdAt);
         return {
             id: post.id,
             slug: post.slug,
             title: post.title,
             excerpt: post.excerpt || "",
-            category: "News", // Authors can have multiple categories
+            category: "News",
             categorySlug: "news",
             author: authorName,
             authorId: author.id,
-            date: formatDate(post.publishedAt || post.createdAt),
-            dateSlug: `/archive/${year}/${month}`,
+            date: formatDate(post.createdAt),
+            dateSlug: `/archive/${year}/${month}/${day}`,
             image: post.featuredImageUrl
         };
     });
@@ -93,10 +93,9 @@ export default async function AuthorArchive({ params }: AuthorArchiveProps) {
                 context={{
                     category: "News",
                     author: authorName,
-                    authorSlug: getAuthorSlug(author) // Keeping for context if needed
+                    authorSlug: getAuthorSlug(author)
                 }}
             />
-
         </div>
     );
 }
