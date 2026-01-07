@@ -216,6 +216,32 @@ export default function PostsPage() {
         }
     };
 
+    const handleStatusChange = async (post: Post, newStatus: 'draft' | 'published' | 'archived') => {
+        const oldStatus = post.status;
+
+        // Optimistic update
+        setPosts(posts.map(p => p.id === post.id ? { ...p, status: newStatus } : p));
+
+        try {
+            const updateData: any = {
+                status: newStatus,
+                updatedAt: new Date().toISOString()
+            };
+
+            // If moving to published, set publishedAt if not already set
+            if (newStatus === 'published' && !post.publishedAt) {
+                updateData.publishedAt = new Date().toISOString();
+            }
+
+            await updateDoc(doc(db, "posts", post.id), updateData);
+        } catch (error) {
+            console.error("Error updating status:", error);
+            // Rollback on error
+            setPosts(posts.map(p => p.id === post.id ? { ...p, status: oldStatus } : p));
+            alert("Failed to update post status.");
+        }
+    };
+
     const handleDelete = async (id: string) => {
         if (confirm("Are you sure you want to delete this post?")) {
             try {
@@ -328,14 +354,26 @@ export default function PostsPage() {
                                         </div>
                                     </td>
                                     <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <span style={{
-                                            fontSize: "0.85rem",
-                                            fontWeight: "600",
-                                            color: post.status === "published" ? "#10b981" : post.status === "draft" ? "#f59e0b" : "#ef4444",
-                                            textTransform: "capitalize"
-                                        }}>
-                                            {post.status}
-                                        </span>
+                                        <select
+                                            value={post.status}
+                                            onChange={(e) => handleStatusChange(post, e.target.value as any)}
+                                            style={{
+                                                padding: "0.4rem 0.6rem",
+                                                borderRadius: "var(--radius-sm)",
+                                                border: "1px solid var(--border)",
+                                                backgroundColor: "var(--bg-secondary)",
+                                                color: post.status === "published" ? "#10b981" : post.status === "draft" ? "#f59e0b" : "#ef4444",
+                                                fontWeight: "600",
+                                                fontSize: "0.85rem",
+                                                outline: "none",
+                                                cursor: "pointer",
+                                                textTransform: "capitalize"
+                                            }}
+                                        >
+                                            <option value="published" style={{ color: "#10b981" }}>Published</option>
+                                            <option value="draft" style={{ color: "#f59e0b" }}>Draft</option>
+                                            <option value="archived" style={{ color: "#ef4444" }}>Archived</option>
+                                        </select>
                                     </td>
                                     <td style={{ padding: "1.2rem 1.5rem", textAlign: "center" }}>
                                         <button
