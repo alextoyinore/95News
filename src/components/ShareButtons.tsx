@@ -12,7 +12,7 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
     const [canShare, setCanShare] = useState(false);
 
     React.useEffect(() => {
-        setCanShare(true);
+        setCanShare(typeof navigator !== 'undefined' && 'share' in navigator);
     }, []);
 
     const shareLinks = {
@@ -22,7 +22,6 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
     };
 
     const copyToClipboard = async () => {
-        if (typeof window === 'undefined' || !navigator?.clipboard) return;
         try {
             await navigator.clipboard.writeText(url);
             setCopied(true);
@@ -33,8 +32,9 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
     };
 
     const handleNativeShare = async () => {
-        if (typeof window !== 'undefined' && navigator?.share) {
+        if (canShare) {
             try {
+                // @ts-ignore
                 await navigator.share({
                     title: title,
                     url: url
