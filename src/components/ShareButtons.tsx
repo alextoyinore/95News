@@ -9,10 +9,10 @@ interface ShareButtonsProps {
 
 export default function ShareButtons({ url, title }: ShareButtonsProps) {
     const [copied, setCopied] = useState(false);
-    const [canShare, setCanShare] = React.useState(false);
+    const [canShare, setCanShare] = useState(false);
 
     React.useEffect(() => {
-        setCanShare(typeof navigator !== 'undefined' && !!navigator.share);
+        setCanShare(typeof navigator !== 'undefined' && 'share' in navigator);
     }, []);
 
     const shareLinks = {
@@ -34,6 +34,7 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
     const handleNativeShare = async () => {
         if (canShare) {
             try {
+                // @ts-ignore
                 await navigator.share({
                     title: title,
                     url: url
