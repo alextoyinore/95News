@@ -123,7 +123,7 @@ export default function FetchMorePosts({ initialPosts, queryConstraints, limitCo
                 const newPosts = await Promise.all(nextSnapshot.docs.map(async doc => {
                     const data = { id: doc.id, ...doc.data() } as Post;
                     const auth = await resolveAuthor(data.authorId);
-                    const { year, month } = getDateSlugs(data.publishedAt || data.createdAt);
+                    const { year, month, day } = getDateSlugs(data.publishedAt || data.createdAt);
 
                     return {
                         id: data.id,
@@ -136,7 +136,7 @@ export default function FetchMorePosts({ initialPosts, queryConstraints, limitCo
                         authorId: data.authorId, // Add authorId
                         authorSlug: context.authorSlug || auth.slug,
                         date: formatDate(data.publishedAt || data.createdAt),
-                        dateSlug: `/archive/${year}/${month}`,
+                        dateSlug: `/archive/${year}/${month}/${day}`,
                         image: data.featuredImageUrl
                     };
                 }));

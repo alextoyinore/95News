@@ -65,9 +65,9 @@ export default async function DayArchive({ params }: { params: Promise<{ year: s
             title: post.title,
             excerpt: post.excerpt || "",
             category: "Article",
-            author: authors[post.authorId]?.name || "NineToFive Staff",
+            author: authors[post.authorId]?.name || "95News",
             authorId: post.authorId,
-            authorSlug: authors[post.authorId]?.slug || "ninetofive-staff",
+            authorSlug: authors[post.authorId]?.slug || "95news",
             date: formatDate(post.publishedAt || post.createdAt),
             dateSlug: `/archive/${pYear}/${pMonth}`,
             image: post.featuredImageUrl
@@ -100,7 +100,7 @@ export default async function DayArchive({ params }: { params: Promise<{ year: s
                     ]}
                     initialAuthors={authors}
                     context={{
-                        category: "Article"
+                        category: "News"
                     }}
                 />
             )}

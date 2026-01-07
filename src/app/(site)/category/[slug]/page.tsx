@@ -4,36 +4,7 @@ import { collection, query, where, getDocs, limit, orderBy } from "firebase/fire
 import { Category, Post, User } from "@/types/firestore";
 import FetchMorePosts from "@/components/FetchMorePosts";
 
-const formatDate = (dateVal: any) => {
-    if (!dateVal) return "Unknown Date";
-    try {
-        if (dateVal && typeof dateVal.toDate === 'function') {
-            return dateVal.toDate().toLocaleDateString();
-        }
-        const d = new Date(dateVal);
-        if (isNaN(d.getTime())) return "Invalid Date";
-        return d.toLocaleDateString();
-    } catch (e) {
-        return "Invalid Date";
-    }
-};
-
-const getAuthorSlug = (user: User) => {
-    return (user.displayName || user.email.split('@')[0]).toLowerCase().replace(/\s+/g, '-');
-};
-
-const getDateSlugs = (dateVal: any) => {
-    try {
-        const d = dateVal && typeof dateVal.toDate === 'function' ? dateVal.toDate() : new Date(dateVal);
-        if (isNaN(d.getTime())) return { year: "2026", month: "january" };
-        return {
-            year: d.getFullYear().toString(),
-            month: d.toLocaleString('default', { month: 'long' }).toLowerCase()
-        };
-    } catch (e) {
-        return { year: "2026", month: "january" };
-    }
-};
+import { formatDate, getAuthorSlug, getDateSlugs } from "@/lib/utils";
 
 export default async function CategoryArchive({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
@@ -73,7 +44,7 @@ export default async function CategoryArchive({ params }: { params: Promise<{ sl
             if (!userSnap.empty) {
                 const userData = userSnap.docs[0].data() as User;
                 authors[id] = {
-                    name: userData.displayName || userData.email || "Unknown Author",
+                    name: userData.displayName || userData.email || "95News",
                     slug: getAuthorSlug(userData)
                 };
             }
@@ -81,7 +52,7 @@ export default async function CategoryArchive({ params }: { params: Promise<{ sl
     }
 
     const initialPosts = postDocs.map(post => {
-        const { year, month } = getDateSlugs(post.publishedAt || post.createdAt);
+        const { year, month, day } = getDateSlugs(post.publishedAt || post.createdAt);
         return {
             id: post.id,
             slug: post.slug,
@@ -89,11 +60,11 @@ export default async function CategoryArchive({ params }: { params: Promise<{ sl
             excerpt: post.excerpt || "",
             category: categoryName,
             categorySlug: category.slug,
-            author: authors[post.authorId]?.name || "NineToFive Staff",
+            author: authors[post.authorId]?.name || "95News",
             authorId: post.authorId,
-            authorSlug: authors[post.authorId]?.slug || "ninetofive-staff",
+            authorSlug: authors[post.authorId]?.slug || "95news",
             date: formatDate(post.publishedAt || post.createdAt),
-            dateSlug: `/archive/${year}/${month}`,
+            dateSlug: `/archive/${year}/${month}/${day}`,
             image: post.featuredImageUrl
         };
     });

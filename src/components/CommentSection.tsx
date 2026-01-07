@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { addComment, deleteComment, updateComment } from '@/lib/postActions';
 import { Comment, User } from '@/types/firestore';
+import { useRouter } from 'next/navigation';
 
 interface CommentWithAuthor extends Comment {
     author?: User;
@@ -17,6 +18,7 @@ interface CommentSectionProps {
 
 export default function CommentSection({ postId }: CommentSectionProps) {
     const { user } = useAuth();
+    const router = useRouter();
     const [comments, setComments] = useState<CommentWithAuthor[]>([]);
     const [newComment, setNewComment] = useState('');
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -27,8 +29,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
 
     useEffect(() => {
         const q = query(
-            collection(db, 'comments'),
-            where('postId', '==', postId),
+            collection(db, 'posts', postId, 'comments'),
             orderBy('createdAt', 'desc')
         );
 
@@ -38,26 +39,37 @@ export default function CommentSection({ postId }: CommentSectionProps) {
                 ...doc.data()
             } as CommentWithAuthor));
 
-            // Fetch authors for all comments
             const userIds = [...new Set(commentsData.map(c => c.authorId))];
-            const usersQuery = query(collection(db, 'users'), where('id', 'in', userIds.length > 0 ? userIds : ['']));
-            const usersSnapshot = await getDocs(usersQuery);
-            const usersMap = new Map(usersSnapshot.docs.map(doc => [doc.data().id, doc.data() as User]));
+            if (userIds.length > 0) {
+                const usersQuery = query(collection(db, 'users'), where('id', 'in', userIds));
+                const usersSnapshot = await getDocs(usersQuery);
+                const usersMap = new Map(usersSnapshot.docs.map(doc => [doc.data().id, doc.data() as User]));
 
-            const commentsWithAuthors = commentsData.map(comment => ({
-                ...comment,
-                author: usersMap.get(comment.authorId)
-            }));
-
-            setComments(commentsWithAuthors);
+                const commentsWithAuthors = commentsData.map(comment => ({
+                    ...comment,
+                    author: usersMap.get(comment.authorId)
+                }));
+                setComments(commentsWithAuthors);
+            } else {
+                setComments(commentsData);
+            }
         });
 
         return () => unsubscribe();
     }, [postId]);
 
+    const handleLoginRedirect = () => {
+        const currentPath = window.location.pathname;
+        router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+    };
+
     const handleSubmitComment = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user || !newComment.trim()) return;
+        if (!user) {
+            handleLoginRedirect();
+            return;
+        }
+        if (!newComment.trim()) return;
 
         setLoading(true);
         try {
@@ -71,7 +83,11 @@ export default function CommentSection({ postId }: CommentSectionProps) {
     };
 
     const handleReply = async (parentId: string) => {
-        if (!user || !replyContent.trim()) return;
+        if (!user) {
+            handleLoginRedirect();
+            return;
+        }
+        if (!replyContent.trim()) return;
 
         setLoading(true);
         try {
@@ -90,7 +106,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
 
         setLoading(true);
         try {
-            await updateComment(commentId, editContent.trim());
+            await updateComment(postId, commentId, editContent.trim());
             setEditingId(null);
             setEditContent('');
         } catch (error) {
@@ -104,7 +120,7 @@ export default function CommentSection({ postId }: CommentSectionProps) {
         if (!confirm('Are you sure you want to delete this comment?')) return;
 
         try {
-            await deleteComment(commentId);
+            await deleteComment(postId, commentId);
         } catch (error) {
             console.error('Error deleting comment:', error);
         }
@@ -334,16 +350,25 @@ export default function CommentSection({ postId }: CommentSectionProps) {
                     </button>
                 </form>
             ) : (
-                <div style={{
-                    padding: '2rem',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: 'var(--radius-md)',
-                    textAlign: 'center',
-                    marginBottom: '3rem'
-                }}>
-                    <p style={{ color: 'var(--text-secondary)' }}>
-                        Please <a href="/login" style={{ color: 'var(--accent)', fontWeight: '600' }}>log in</a> to leave a comment.
-                    </p>
+                <div style={{ marginBottom: '3rem', position: 'relative' }}>
+                    <textarea
+                        placeholder="Log in to share your thoughts..."
+                        readOnly
+                        onFocus={handleLoginRedirect}
+                        onClick={handleLoginRedirect}
+                        style={{
+                            width: '100%',
+                            padding: '1rem',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px solid var(--border)',
+                            background: 'var(--bg-secondary)',
+                            color: 'var(--text-secondary)',
+                            fontSize: '1rem',
+                            minHeight: '120px',
+                            resize: 'vertical',
+                            cursor: 'pointer'
+                        }}
+                    />
                 </div>
             )}
 

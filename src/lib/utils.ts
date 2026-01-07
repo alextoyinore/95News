@@ -29,13 +29,15 @@ export const getAuthorSlug = (user: User) => {
 export const getDateSlugs = (dateVal: any) => {
     try {
         const d = dateVal && typeof dateVal.toDate === 'function' ? dateVal.toDate() : new Date(dateVal);
-        if (isNaN(d.getTime())) return { year: "2026", month: "01" };
+        if (isNaN(d.getTime())) return { year: "2026", month: "01", day: "01" };
         const monthNum = (d.getMonth() + 1).toString().padStart(2, '0');
+        const dayNum = d.getDate().toString().padStart(2, '0');
         return {
             year: d.getFullYear().toString(),
-            month: monthNum
+            month: monthNum,
+            day: dayNum
         };
     } catch (e) {
-        return { year: "2026", month: "01" };
+        return { year: "2026", month: "01", day: "01" };
     }
 };

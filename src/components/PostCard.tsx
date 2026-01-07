@@ -15,9 +15,10 @@ interface PostCardProps {
         image?: string;
     };
     variant?: "horizontal" | "vertical" | "compact" | "minimal";
+    imageHeight?: string;
 }
 
-export default function PostCard({ post, variant = "vertical" }: PostCardProps) {
+export default function PostCard({ post, variant = "vertical", imageHeight = "240px" }: PostCardProps) {
     if (variant === "minimal") {
         return (
             <Link href={`/${post.slug || post.id}`} style={{ display: "block" }}>
@@ -88,7 +89,7 @@ export default function PostCard({ post, variant = "vertical" }: PostCardProps) 
         <article style={{ height: "100%", display: "flex", flexDirection: "column" }}>
             <Link href={`/${post.slug || post.id}`} style={{ display: "block" }}>
                 {post.image && (
-                    <div style={{ height: "240px", width: "100%", borderRadius: "var(--radius-lg)", overflow: "hidden", marginBottom: "1.5rem" }}>
+                    <div style={{ height: imageHeight, width: "100%", borderRadius: "var(--radius-lg)", overflow: "hidden", marginBottom: "1.5rem" }}>
                         <img src={post.image} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
                 )}

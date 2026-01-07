@@ -88,9 +88,9 @@ export default async function TagArchive({ params }: { params: Promise<{ slug: s
             title: post.title,
             excerpt: post.excerpt || "",
             category: "Article",
-            author: authors[post.authorId]?.name || "NineToFive Staff",
+            author: authors[post.authorId]?.name || "95News",
             authorId: post.authorId,
-            authorSlug: authors[post.authorId]?.slug || "ninetofive-staff",
+            authorSlug: authors[post.authorId]?.slug || "95news",
             date: formatDate(post.publishedAt || post.createdAt),
             dateSlug: `/archive/${year}/${month}`,
             image: post.featuredImageUrl
@@ -113,7 +113,7 @@ export default async function TagArchive({ params }: { params: Promise<{ slug: s
                 ]}
                 initialAuthors={authors}
                 context={{
-                    category: "Article"
+                    category: "News"
                 }}
             />
         </div>

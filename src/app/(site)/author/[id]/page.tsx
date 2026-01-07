@@ -50,8 +50,8 @@ export default async function AuthorArchive({ params }: AuthorArchiveProps) {
             slug: post.slug,
             title: post.title,
             excerpt: post.excerpt || "",
-            category: "Article", // Authors can have multiple categories
-            categorySlug: "general",
+            category: "News", // Authors can have multiple categories
+            categorySlug: "news",
             author: authorName,
             authorId: author.id,
             date: formatDate(post.publishedAt || post.createdAt),
@@ -74,7 +74,7 @@ export default async function AuthorArchive({ params }: AuthorArchiveProps) {
                     <span style={{ color: "var(--accent)", fontWeight: "700", textTransform: "uppercase", fontSize: "0.85rem", letterSpacing: "1px" }}>Author Profile</span>
                     <h1 style={{ fontSize: "clamp(2rem, 6vw, 3rem)", margin: "0.5rem 0" }}>{authorName}</h1>
                     <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem", maxWidth: "800px" }}>
-                        {author.bio || `Contributor to NineToFive. Sharing insights and updates on various topics.`}
+                        {author.bio || `Contributor to 95News. Sharing insights and updates on various topics.`}
                     </p>
                 </div>
             </div>
@@ -91,7 +91,7 @@ export default async function AuthorArchive({ params }: AuthorArchiveProps) {
                 ]}
                 initialAuthors={authors}
                 context={{
-                    category: "Article",
+                    category: "News",
                     author: authorName,
                     authorSlug: getAuthorSlug(author) // Keeping for context if needed
                 }}

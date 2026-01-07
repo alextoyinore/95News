@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, updateDoc, query, orderBy, where, limit, startAfter, QueryConstraint, getCountFromServer } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, query, orderBy, where, limit, startAfter, QueryConstraint, getCountFromServer, setDoc } from "firebase/firestore";
 import { User as FirestoreUser } from "@/types/firestore";
 import { Search, Shield, User as UserIcon, Mail } from "lucide-react";
 import { useAuth } from '@/context/AuthContext';
@@ -14,6 +14,14 @@ export default function UserManagementPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [updating, setUpdating] = useState<string | null>(null);
+
+    // Create User State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newName, setNewName] = useState("");
+    const [newEmail, setNewEmail] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [newRole, setNewRole] = useState<FirestoreUser['role']>("subscriber");
+    const [creating, setCreating] = useState(false);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -108,6 +116,61 @@ export default function UserManagementPage() {
         }
     };
 
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCreating(true);
+
+        try {
+            // Import Firebase Auth functions dynamically
+            const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
+            const { initializeApp, deleteApp } = await import('firebase/app');
+
+            // Initialize a secondary app to avoid logging out the current admin
+            const secondaryApp = initializeApp({
+                apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+                authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+                projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+                storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+                messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+                appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+            }, "SecondaryApp");
+
+            const secondaryAuth = getAuth(secondaryApp);
+            const userCredential = await createUserWithEmailAndPassword(secondaryAuth, newEmail, newPassword);
+            const newUser = userCredential.user;
+
+            // Create Firestore Document using main app db
+            await setDoc(doc(db, "users", newUser.uid), {
+                id: newUser.uid,
+                email: newEmail,
+                displayName: newName,
+                photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(newName)}&background=random`,
+                role: newRole,
+                createdAt: new Date().toISOString()
+            });
+
+            // Cleanup
+            await deleteApp(secondaryApp);
+
+            // Reset form and refresh
+            setNewName("");
+            setNewEmail("");
+            setNewPassword("");
+            setNewRole("subscriber");
+            setShowCreateModal(false);
+            alert("User created successfully!");
+            // Refresh logic: check if on first page, reload
+            if (currentPage === 1) {
+                fetchUsers(1, null, itemsPerPage);
+            }
+        } catch (error: any) {
+            console.error("Error creating user:", error);
+            alert("Failed to create user: " + error.message);
+        } finally {
+            setCreating(false);
+        }
+    };
+
     const filteredUsers = users.filter(u =>
         u.email.toLowerCase().includes(search.toLowerCase()) ||
         u.displayName?.toLowerCase().includes(search.toLowerCase())
@@ -120,7 +183,106 @@ export default function UserManagementPage() {
                     <h1 style={{ fontSize: "2rem", fontWeight: "800", marginBottom: "0.5rem" }}>User Management</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Manage permissions and access levels for staff and readers.</p>
                 </div>
+                {userRecord?.role === 'superuser' && (
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="btn btn-primary"
+                        style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+                    >
+                        <UserIcon size={18} /> Add User
+                    </button>
+                )}
             </div>
+
+            {/* Create User Modal */}
+            {showCreateModal && (
+                <div style={{
+                    position: "fixed",
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: "rgba(0,0,0,0.5)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1000,
+                    backdropFilter: "blur(5px)"
+                }}>
+                    <div className="glass" style={{
+                        padding: "2rem",
+                        borderRadius: "var(--radius-lg)",
+                        width: "100%",
+                        maxWidth: "500px",
+                        position: "relative",
+                        backgroundColor: "var(--bg-primary)"
+                    }}>
+                        <h2 style={{ fontSize: "1.5rem", fontWeight: "700", marginBottom: "1.5rem" }}>Create New User</h2>
+                        <form onSubmit={handleCreateUser} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                            <div>
+                                <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem" }}>Display Name</label>
+                                <input
+                                    type="text"
+                                    value={newName}
+                                    onChange={(e) => setNewName(e.target.value)}
+                                    required
+                                    style={{ width: "100%", padding: "0.8rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem" }}>Email</label>
+                                <input
+                                    type="email"
+                                    value={newEmail}
+                                    onChange={(e) => setNewEmail(e.target.value)}
+                                    required
+                                    style={{ width: "100%", padding: "0.8rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem" }}>Password</label>
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                    style={{ width: "100%", padding: "0.8rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: "block", marginBottom: "0.5rem", fontSize: "0.9rem" }}>Role</label>
+                                <select
+                                    value={newRole}
+                                    onChange={(e) => setNewRole(e.target.value as FirestoreUser['role'])}
+                                    style={{ width: "100%", padding: "0.8rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                                >
+                                    <option value="subscriber">Subscriber</option>
+                                    <option value="contributor">Contributor</option>
+                                    <option value="writer">Writer</option>
+                                    <option value="editor">Editor</option>
+                                    <option value="superuser">Superuser</option>
+                                </select>
+                            </div>
+                            <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    className="btn"
+                                    style={{ flex: 1, border: "1px solid var(--border)" }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={creating}
+                                    className="btn btn-primary"
+                                    style={{ flex: 1 }}
+                                >
+                                    {creating ? "Creating..." : "Create User"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <div style={{ marginBottom: "2rem", position: "relative", maxWidth: "400px" }}>
                 <Search size={18} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />

@@ -33,7 +33,7 @@ export default function CategoryHighlight({ title, posts }: CategoryHighlightPro
 
             <div className="highlight-grid" style={{ display: "grid", gap: "2.5rem" }}>
                 <div style={{ height: "100%" }}>
-                    <PostCard post={mainPost} />
+                    <PostCard post={mainPost} imageHeight="350px" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                     {sidePosts.map((post, idx) => (

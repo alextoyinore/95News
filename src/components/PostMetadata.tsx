@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { togglePostLike, getPostLikeCount, checkUserLiked } from '@/lib/postActions';
 import { formatDate } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 interface PostMetadataProps {
     postId: string;
@@ -17,6 +18,7 @@ export default function PostMetadata({ postId, publishedAt, createdAt, views = 0
     const [likeCount, setLikeCount] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         // Fetch initial like count
@@ -30,7 +32,8 @@ export default function PostMetadata({ postId, publishedAt, createdAt, views = 0
 
     const handleLike = async () => {
         if (!user) {
-            alert('Please log in to like this post');
+            const currentPath = window.location.pathname;
+            router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
             return;
         }
 

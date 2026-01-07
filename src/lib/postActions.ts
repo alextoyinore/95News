@@ -9,6 +9,10 @@ export async function incrementPostViews(postId: string) {
         await updateDoc(postRef, {
             views: increment(1)
         });
+        // Also add to sub-collection for analytics
+        await addDoc(collection(db, 'posts', postId, 'views'), {
+            timestamp: new Date().toISOString()
+        });
     } catch (error) {
         console.error('Error incrementing views:', error);
     }
@@ -16,25 +20,21 @@ export async function incrementPostViews(postId: string) {
 
 export async function togglePostLike(postId: string, userId: string): Promise<boolean> {
     try {
-        // Check if user already liked the post
-        const likesQuery = query(
-            collection(db, 'postLikes'),
-            where('postId', '==', postId),
-            where('userId', '==', userId)
-        );
-        const likesSnapshot = await getDocs(likesQuery);
+        const likeRef = doc(db, 'posts', postId, 'likes', userId);
+        const likeDoc = await getDocs(query(collection(db, 'posts', postId, 'likes'), where('userId', '==', userId))); // Actually accessing by ID directly is better if we use userId as docId
 
-        if (!likesSnapshot.empty) {
-            // Unlike: remove the like
-            await deleteDoc(likesSnapshot.docs[0].ref);
+        // Use userId as document ID for easier toggling
+        const likeDocRef = doc(db, 'posts', postId, 'likes', userId);
+        const docSnap = await import('firebase/firestore').then(mod => mod.getDoc(likeDocRef));
+
+        if (docSnap.exists()) {
+            await deleteDoc(likeDocRef);
             return false;
         } else {
-            // Like: add the like
-            await addDoc(collection(db, 'postLikes'), {
-                postId,
+            await import('firebase/firestore').then(mod => mod.setDoc(likeDocRef, {
                 userId,
                 createdAt: new Date().toISOString()
-            });
+            }));
             return true;
         }
     } catch (error) {
@@ -45,12 +45,8 @@ export async function togglePostLike(postId: string, userId: string): Promise<bo
 
 export async function getPostLikeCount(postId: string): Promise<number> {
     try {
-        const likesQuery = query(
-            collection(db, 'postLikes'),
-            where('postId', '==', postId)
-        );
-        const likesSnapshot = await getDocs(likesQuery);
-        return likesSnapshot.size;
+        const likesSnapshot = await import('firebase/firestore').then(mod => mod.getCountFromServer(collection(db, 'posts', postId, 'likes')));
+        return likesSnapshot.data().count;
     } catch (error) {
         console.error('Error getting like count:', error);
         return 0;
@@ -59,13 +55,9 @@ export async function getPostLikeCount(postId: string): Promise<number> {
 
 export async function checkUserLiked(postId: string, userId: string): Promise<boolean> {
     try {
-        const likesQuery = query(
-            collection(db, 'postLikes'),
-            where('postId', '==', postId),
-            where('userId', '==', userId)
-        );
-        const likesSnapshot = await getDocs(likesQuery);
-        return !likesSnapshot.empty;
+        const likeDocRef = doc(db, 'posts', postId, 'likes', userId);
+        const docSnap = await import('firebase/firestore').then(mod => mod.getDoc(likeDocRef));
+        return docSnap.exists();
     } catch (error) {
         console.error('Error checking user like:', error);
         return false;
@@ -74,8 +66,7 @@ export async function checkUserLiked(postId: string, userId: string): Promise<bo
 
 export async function addComment(postId: string, userId: string, content: string, parentId?: string) {
     try {
-        await addDoc(collection(db, 'comments'), {
-            postId,
+        await addDoc(collection(db, 'posts', postId, 'comments'), {
             authorId: userId,
             content,
             parentId: parentId || null,
@@ -87,18 +78,18 @@ export async function addComment(postId: string, userId: string, content: string
     }
 }
 
-export async function deleteComment(commentId: string) {
+export async function deleteComment(postId: string, commentId: string) {
     try {
-        await deleteDoc(doc(db, 'comments', commentId));
+        await deleteDoc(doc(db, 'posts', postId, 'comments', commentId));
     } catch (error) {
         console.error('Error deleting comment:', error);
         throw error;
     }
 }
 
-export async function updateComment(commentId: string, content: string) {
+export async function updateComment(postId: string, commentId: string, content: string) {
     try {
-        await updateDoc(doc(db, 'comments', commentId), {
+        await updateDoc(doc(db, 'posts', postId, 'comments', commentId), {
             content,
             updatedAt: new Date().toISOString()
         });

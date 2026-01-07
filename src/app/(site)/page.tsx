@@ -32,7 +32,7 @@ async function resolvePostsData(postDocs: Post[]) {
     if (!userSnap.empty) {
       const userData = userSnap.docs[0].data() as User;
       authors[id] = {
-        name: userData.displayName || userData.email || "Unknown Author",
+        name: userData.displayName || userData.email || "95News",
         slug: getAuthorSlug(userData)
       };
     }
@@ -50,11 +50,11 @@ async function resolvePostsData(postDocs: Post[]) {
     slug: post.slug,
     title: post.title,
     excerpt: post.excerpt || "",
-    category: categoriesMap[post.categoryIds?.[0] || ""]?.name || "Article",
-    categorySlug: categoriesMap[post.categoryIds?.[0] || ""]?.slug || "general",
-    author: authors[post.authorId]?.name || "NineToFive Staff",
+    category: categoriesMap[post.categoryIds?.[0] || ""]?.name || "News",
+    categorySlug: categoriesMap[post.categoryIds?.[0] || ""]?.slug || "news",
+    author: authors[post.authorId]?.name || "95News",
     authorId: post.authorId,
-    authorSlug: authors[post.authorId]?.slug || "ninetofive-author",
+    authorSlug: authors[post.authorId]?.slug || "95news-author",
     date: formatDate(post.publishedAt || post.createdAt),
     image: post.featuredImageUrl
   }));

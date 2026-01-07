@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import CookieConsent from "@/components/CookieConsent";
 
 export default function SiteLayout({
     children,
@@ -13,6 +14,7 @@ export default function SiteLayout({
                 {children}
             </main>
             <Footer />
+            <CookieConsent />
         </>
     );
 }

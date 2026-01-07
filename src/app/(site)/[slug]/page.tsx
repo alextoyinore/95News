@@ -159,8 +159,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
                         <PostMetadata
                             postId={post.id}
-                            publishedAt={post.publishedAt}
-                            createdAt={post.createdAt}
+                            publishedAt={post.publishedAt ? (typeof post.publishedAt === 'string' ? post.publishedAt : (post.publishedAt as any).toDate().toISOString()) : undefined}
+                            createdAt={typeof post.createdAt === 'string' ? post.createdAt : (post.createdAt as any).toDate().toISOString()}
                             views={post.views}
                         />
 
