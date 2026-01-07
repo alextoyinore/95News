@@ -203,27 +203,32 @@ export default function NewPostPage() {
                 .filter(w => w !== '');
 
             // Construct Post data matching Firestore schema
-            const postData: Partial<Post> = {
-                title,
-                slug,
-                titleKeywords,
+            const postDataRaw = {
+                title: title || '',
+                slug: slug || '',
+                titleKeywords: titleKeywords || [],
                 excerpt: excerpt || '',
                 focusKeyword: focusKeyword || '',
                 metaDescription: metaDescription || '',
-                categoryIds,
-                tagIds: tags,
-                content: JSON.stringify(content),
+                categoryIds: categoryIds || [],
+                tagIds: tags || [],
+                content: JSON.stringify(content) || '',
                 featuredImageUrl: featuredImage || '',
                 featuredImageCaption: featuredImageCaption || '',
                 audioUrl: audioUrl || '',
-                status,
+                status: status || 'draft',
                 authorId: user.uid,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                isBreaking,
-                isFeatured,
+                isBreaking: !!isBreaking,
+                isFeatured: !!isFeatured,
                 views: 0
             };
+
+            // Remove any potential undefined values just in case
+            const postData = Object.fromEntries(
+                Object.entries(postDataRaw).filter(([_, v]) => v !== undefined)
+            );
 
             await addDoc(collection(db, 'posts'), postData);
             router.push('/dashboard/posts');
@@ -384,6 +389,8 @@ export default function NewPostPage() {
                             <div>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
                                     <label style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Tags</label>
+                                    {/* AI generation muted for now */}
+                                    {/* 
                                     <button
                                         onClick={() => generateWithAI('tags')}
                                         disabled={generating === 'tags'}
@@ -391,6 +398,7 @@ export default function NewPostPage() {
                                     >
                                         <Sparkles size={12} /> {generating === 'tags' ? 'Generating...' : 'AI Generate'}
                                     </button>
+                                    */}
                                 </div>
                                 <input
                                     type="text"
@@ -555,6 +563,8 @@ export default function NewPostPage() {
                             <div>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
                                     <label style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Focus Keyword</label>
+                                    {/* AI generation muted for now */}
+                                    {/* 
                                     <button
                                         onClick={() => generateWithAI('focusKeyword')}
                                         disabled={generating === 'focusKeyword'}
@@ -562,6 +572,7 @@ export default function NewPostPage() {
                                     >
                                         <Sparkles size={12} /> {generating === 'focusKeyword' ? 'Generating...' : 'AI Generate'}
                                     </button>
+                                    */}
                                 </div>
                                 <input
                                     type="text"
@@ -574,6 +585,8 @@ export default function NewPostPage() {
                             <div>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
                                     <label style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Meta Description</label>
+                                    {/* AI generation muted for now */}
+                                    {/* 
                                     <button
                                         onClick={() => generateWithAI('metaDescription')}
                                         disabled={generating === 'metaDescription'}
@@ -581,6 +594,7 @@ export default function NewPostPage() {
                                     >
                                         <Sparkles size={12} /> {generating === 'metaDescription' ? 'Generating...' : 'AI Generate'}
                                     </button>
+                                    */}
                                 </div>
                                 <textarea
                                     style={{ width: "100%", padding: "0.5rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", backgroundColor: "var(--bg-primary)", minHeight: "80px" }}

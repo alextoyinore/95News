@@ -217,24 +217,29 @@ export default function EditPostPage() {
                 .map(w => w.replace(/[^a-z0-9]/g, ''))
                 .filter(w => w !== '');
 
-            const postData: Partial<Post> = {
-                title,
-                slug,
-                titleKeywords,
+            const postDataRaw = {
+                title: title || '',
+                slug: slug || '',
+                titleKeywords: titleKeywords || [],
                 excerpt: excerpt || '',
                 focusKeyword: focusKeyword || '',
                 metaDescription: metaDescription || '',
-                categoryIds,
-                tagIds: tags,
-                content: JSON.stringify(content),
+                categoryIds: categoryIds || [],
+                tagIds: tags || [],
+                content: JSON.stringify(content) || '',
                 featuredImageUrl: featuredImage || '',
                 featuredImageCaption: featuredImageCaption || '',
                 audioUrl: audioUrl || '',
-                isBreaking,
-                isFeatured,
-                status,
+                isBreaking: !!isBreaking,
+                isFeatured: !!isFeatured,
+                status: status || 'draft',
                 updatedAt: new Date().toISOString()
             };
+
+            // Remove any potential undefined values just in case
+            const postData = Object.fromEntries(
+                Object.entries(postDataRaw).filter(([_, v]) => v !== undefined)
+            );
 
             await updateDoc(doc(db, 'posts', id), postData);
             router.push('/dashboard/posts');
@@ -459,6 +464,8 @@ export default function EditPostPage() {
                             <div>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
                                     <label style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Tags</label>
+                                    {/* AI generation muted for now */}
+                                    {/* 
                                     <button
                                         onClick={() => generateWithAI('tags')}
                                         disabled={generating === 'tags'}
@@ -466,6 +473,7 @@ export default function EditPostPage() {
                                     >
                                         <Sparkles size={12} /> {generating === 'tags' ? 'Generating...' : 'AI Generate'}
                                     </button>
+                                    */}
                                 </div>
                                 <input
                                     type="text"
