@@ -8,6 +8,7 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, limit, orderBy } from "firebase/firestore";
 import { Post, Category, User } from "@/types/firestore";
 import { formatDate, getAuthorSlug } from "@/lib/utils";
+import { getLayoutSettings } from "@/lib/layoutActions";
 
 async function getCategoryBySlug(slugs: string | string[]) {
   const slugList = Array.isArray(slugs) ? slugs : [slugs];
@@ -87,6 +88,13 @@ async function fetchLatestPosts(count: number = 4) {
 }
 
 export default async function Home() {
+  // 0. Fetch Layout Settings
+  const layoutSettings = await getLayoutSettings();
+  const getWidgetActive = (id: string) => {
+    if (!layoutSettings) return true; // Default to active if no settings
+    return layoutSettings.widgets.find(w => w.id === id)?.active ?? true;
+  };
+
   // 1. Fetch Hero Posts (Featured)
   let featuredTagId = null;
   const tagQuery = query(collection(db, "tags"), where("slug", "==", "featured"), limit(1));
@@ -127,24 +135,27 @@ export default async function Home() {
   const lifestylePosts = await fetchSectionPosts(["lifestyle", "lifestyle-and-culture"], 4);
 
   // 3. Most Read
-  const popularQuery = query(
-    collection(db, "posts"),
-    where("status", "==", "published"),
-    orderBy("views", "desc"),
-    limit(5)
-  );
-  let popularSnap;
-  try {
-    popularSnap = await getDocs(popularQuery);
-  } catch (e) {
-    popularSnap = await getDocs(query(
+  let popularPosts: any[] = [];
+  if (getWidgetActive('w3')) {
+    const popularQuery = query(
       collection(db, "posts"),
       where("status", "==", "published"),
-      orderBy("createdAt", "desc"),
+      orderBy("views", "desc"),
       limit(5)
-    ));
+    );
+    let popularSnap;
+    try {
+      popularSnap = await getDocs(popularQuery);
+    } catch (e) {
+      popularSnap = await getDocs(query(
+        collection(db, "posts"),
+        where("status", "==", "published"),
+        orderBy("createdAt", "desc"),
+        limit(5)
+      ));
+    }
+    popularPosts = popularSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
   }
-  const popularPosts = popularSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
 
   return (
     <div className="container site-content" style={{ paddingBottom: "4rem" }}>
@@ -168,32 +179,36 @@ export default async function Home() {
             </div>
           )}
 
-          <div style={{ margin: "4rem 0" }}>
-            <Newsletter />
-          </div>
+          {getWidgetActive('w2') && (
+            <div style={{ margin: "4rem 0" }}>
+              <Newsletter />
+            </div>
+          )}
 
           <CategoryHighlight title="World" posts={worldPosts} />
           {sportsPosts.length > 0 && <CategoryHighlight title="Sports" posts={sportsPosts} />}
         </main>
 
         <aside className="home-sidebar" style={{ position: "sticky", top: "6rem", alignSelf: "flex-start" }}>
-          <SocialSidebar />
+          {getWidgetActive('w1') && <SocialSidebar />}
 
-          <div className="glass" style={{ padding: "1.5rem", borderRadius: "var(--radius-md)", marginBottom: "3rem" }}>
-            <h3 style={{ fontSize: "1.1rem", marginBottom: "1.5rem", borderBottom: "2px solid var(--accent)", paddingBottom: "0.3rem", display: "inline-block" }}>
-              Most Read
-            </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              {popularPosts.map((post, i) => (
-                <div key={post.id} style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
-                  <span style={{ fontSize: "1.5rem", fontWeight: "800", color: "var(--accent)", opacity: 0.5 }}>0{i + 1}</span>
-                  <Link href={`/${post.slug}`} style={{ fontSize: "0.95rem", fontWeight: "600", lineHeight: "1.4" }}>
-                    {post.title}
-                  </Link>
-                </div>
-              ))}
+          {getWidgetActive('w3') && popularPosts.length > 0 && (
+            <div className="glass" style={{ padding: "1.5rem", borderRadius: "var(--radius-md)", marginBottom: "3rem" }}>
+              <h3 style={{ fontSize: "1.1rem", marginBottom: "1.5rem", borderBottom: "2px solid var(--accent)", paddingBottom: "0.3rem", display: "inline-block" }}>
+                Most Read
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                {popularPosts.map((post, i) => (
+                  <div key={post.id} style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+                    <span style={{ fontSize: "1.5rem", fontWeight: "800", color: "var(--accent)", opacity: 0.5 }}>0{i + 1}</span>
+                    <Link href={`/${post.slug}`} style={{ fontSize: "0.95rem", fontWeight: "600", lineHeight: "1.4" }}>
+                      {post.title}
+                    </Link>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div style={{
             backgroundColor: "var(--accent)",
@@ -204,7 +219,7 @@ export default async function Home() {
           }}>
             <h3 style={{ marginBottom: "1rem" }}>95News Premium</h3>
             <p style={{ fontSize: "0.9rem", opacity: 0.9, marginBottom: "1.5rem" }}>
-              Join NineToFive Premium for exclusive industry reports and deep-dives.
+              Join 95News Premium for exclusive industry reports and deep-dives.
             </p>
             <button className="btn" style={{ backgroundColor: "white", color: "black", width: "100%", borderRadius: "var(--radius-sm)" }}>
               Sign Up
@@ -237,6 +252,12 @@ export default async function Home() {
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
             margin-top: 2rem;
+          }
+          .home-grid main {
+            order: 1;
+          }
+          .home-sidebar {
+            order: 2;
           }
         }
         @media (max-width: 640px) {

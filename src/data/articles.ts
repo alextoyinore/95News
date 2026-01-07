@@ -285,7 +285,6 @@ simpleArticleIds.forEach(id => {
     category: id <= 4 ? "Tech" : id <= 8 ? "World" : "Lifestyle",
     author: {
       name: "Editorial Team",
-      bio: "The NineToFive editorial team brings you the latest news and insights.",
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256"
     },
     date: "Oct 2025",

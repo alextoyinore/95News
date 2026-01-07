@@ -69,7 +69,7 @@ export default function RegisterPage() {
                 textAlign: 'center'
             }}>
                 <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.5rem' }}>Create Account</h1>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Join the NineToFive community</p>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Join the 95News community</p>
 
                 {error && (
                     <div style={{

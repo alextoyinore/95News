@@ -64,7 +64,7 @@ export default function FetchMorePosts({ initialPosts, queryConstraints, limitCo
             console.error("Error resolving author:", e);
         }
 
-        return { name: "NineToFive Staff", slug: "ninetofive-staff" };
+        return { name: "95News Staff", slug: "95news-staff" };
     };
 
     const loadMore = async () => {

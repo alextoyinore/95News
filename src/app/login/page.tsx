@@ -65,7 +65,7 @@ export default function LoginPage() {
                 textAlign: 'center'
             }}>
                 <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '0.5rem' }}>Log In</h1>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Welcome back to NineToFive</p>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Welcome back to 95News</p>
 
                 {error && (
                     <div style={{

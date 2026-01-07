@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getLayoutSettings, saveLayoutSettings, LayoutSettings } from '@/lib/layoutActions';
 
 const initialTemplates = [
-    { id: 'magazine', name: "Magazine Grid", icon: "📰", active: true, description: "Classic news layout with a large hero slider and categorized sections." },
-    { id: 'classic', name: "Classic List", icon: "📝", active: false, description: "Minimalist list-based layout focused on readability and chronological order." },
-    { id: 'modern', name: "Modern Cards", icon: "🃏", active: false, description: "Visual-heavy card layout perfect for lifestyle and photography blogs." },
+    { id: 'magazine', name: "Magazine Grid", icon: "📰", description: "Classic news layout with a large hero slider and categorized sections." },
+    { id: 'classic', name: "Classic List", icon: "📝", description: "Minimalist list-based layout focused on readability and chronological order." },
+    { id: 'modern', name: "Modern Cards", icon: "🃏", description: "Visual-heavy card layout perfect for lifestyle and photography blogs." },
 ];
 
 const initialWidgets = [
@@ -17,27 +18,65 @@ const initialWidgets = [
 ];
 
 export default function LayoutBuilderPage() {
-    const [templates, setTemplates] = useState(initialTemplates);
+    const [activeTemplateId, setActiveTemplateId] = useState('magazine');
     const [widgets, setWidgets] = useState(initialWidgets);
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const settings = await getLayoutSettings();
+                if (settings) {
+                    setActiveTemplateId(settings.activeTemplateId || 'magazine');
+                    if (settings.widgets && settings.widgets.length > 0) {
+                        setWidgets(settings.widgets);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to load layout settings:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     const handleSelectTemplate = (id: string) => {
-        setTemplates(templates.map(t => ({ ...t, active: t.id === id })));
+        setActiveTemplateId(id);
     };
 
     const toggleWidget = (id: string) => {
         setWidgets(widgets.map(w => w.id === id ? { ...w, active: !w.active } : w));
     };
 
-    const handleSaveLayout = () => {
+    const handleSaveLayout = async () => {
         setIsSaving(true);
-        setTimeout(() => {
+        setSaveSuccess(false);
+        try {
+            await saveLayoutSettings({
+                activeTemplateId,
+                widgets
+            });
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 3000);
+        } catch (error) {
+            alert("Failed to save layout settings.");
+        } finally {
             setIsSaving(false);
-            alert("Layout settings updated successfully!");
-        }, 1000);
+        }
     };
 
-    const activeTemplate = templates.find(t => t.active);
+    const activeTemplate = initialTemplates.find(t => t.id === activeTemplateId);
+
+    if (isLoading) {
+        return (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
+                <p>Loading Layout Settings...</p>
+            </div>
+        );
+    }
 
     return (
         <div>
@@ -46,13 +85,16 @@ export default function LayoutBuilderPage() {
                     <h1 style={{ marginBottom: "0.5rem" }}>Layout Builder</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Customize how your homepage and categories look to your readers.</p>
                 </div>
-                <button
-                    className="btn btn-primary"
-                    onClick={handleSaveLayout}
-                    disabled={isSaving}
-                >
-                    {isSaving ? "Saving..." : "Save Layout Settings"}
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                    {saveSuccess && <span style={{ color: "#10b981", fontSize: "0.9rem", fontWeight: "600" }}>✓ Settings Saved</span>}
+                    <button
+                        className="btn btn-primary"
+                        onClick={handleSaveLayout}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? "Saving..." : "Save Layout Settings"}
+                    </button>
+                </div>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "2rem" }}>
@@ -61,15 +103,15 @@ export default function LayoutBuilderPage() {
                     <div className="glass" style={{ padding: "2rem", borderRadius: "var(--radius-lg)" }}>
                         <h3 style={{ marginBottom: "1.5rem" }}>Choose a Base Template</h3>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem" }}>
-                            {templates.map(template => (
+                            {initialTemplates.map(template => (
                                 <div
                                     key={template.id}
                                     onClick={() => handleSelectTemplate(template.id)}
                                     style={{
                                         padding: "1.5rem",
                                         borderRadius: "var(--radius-md)",
-                                        border: template.active ? "2px solid var(--accent)" : "1px solid var(--border)",
-                                        backgroundColor: template.active ? "var(--bg-tertiary)" : "transparent",
+                                        border: activeTemplateId === template.id ? "2px solid var(--accent)" : "1px solid var(--border)",
+                                        backgroundColor: activeTemplateId === template.id ? "var(--bg-tertiary)" : "transparent",
                                         cursor: "pointer",
                                         transition: "all 0.2s ease",
                                         position: "relative"
@@ -78,7 +120,7 @@ export default function LayoutBuilderPage() {
                                     <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>{template.icon}</div>
                                     <div style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "0.5rem" }}>{template.name}</div>
                                     <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", lineHeight: "1.4" }}>{template.description}</p>
-                                    {template.active && (
+                                    {activeTemplateId === template.id && (
                                         <div style={{
                                             position: "absolute",
                                             top: "10px",
@@ -113,8 +155,10 @@ export default function LayoutBuilderPage() {
                         }}>
                             <div style={{ textAlign: "center" }}>
                                 <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🛠️</div>
-                                <p>Drag and Drop Visual Editor Coming Soon</p>
-                                <p style={{ fontSize: "0.8rem" }}>Currently configuring: <strong>{activeTemplate?.name}</strong></p>
+                                <p>Visual Layout Preview for <strong>{activeTemplate?.name}</strong></p>
+                                <p style={{ fontSize: "0.80rem", marginTop: "1rem", maxWidth: "400px", margin: "1rem auto" }}>
+                                    Drag and Drop Visual Editor is currently under development. Site settings will reflect the selected template and active widgets.
+                                </p>
                             </div>
                         </div>
                     </div>
