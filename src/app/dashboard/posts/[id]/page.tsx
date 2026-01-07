@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false });
 import { analyzeSeo, SeoAnalysisResult } from '@/lib/seoAnalyzer';
 import { useRouter, useParams } from 'next/navigation';
-import { doc, getDoc, updateDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, getDocs, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Post } from '@/types/firestore';
 import MediaBrowser from '@/components/MediaBrowser';
@@ -233,7 +233,7 @@ export default function EditPostPage() {
                 isBreaking: !!isBreaking,
                 isFeatured: !!isFeatured,
                 status: status || 'draft',
-                updatedAt: new Date().toISOString()
+                updatedAt: serverTimestamp()
             };
 
             // Remove any potential undefined values just in case

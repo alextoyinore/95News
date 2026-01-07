@@ -9,6 +9,11 @@ interface ShareButtonsProps {
 
 export default function ShareButtons({ url, title }: ShareButtonsProps) {
     const [copied, setCopied] = useState(false);
+    const [canShare, setCanShare] = React.useState(false);
+
+    React.useEffect(() => {
+        setCanShare(typeof navigator !== 'undefined' && !!navigator.share);
+    }, []);
 
     const shareLinks = {
         twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
@@ -27,7 +32,7 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
     };
 
     const handleNativeShare = async () => {
-        if (navigator.share) {
+        if (canShare) {
             try {
                 await navigator.share({
                     title: title,
@@ -194,7 +199,7 @@ export default function ShareButtons({ url, title }: ShareButtonsProps) {
                 )}
             </button>
 
-            {typeof navigator !== 'undefined' && navigator.share && (
+            {canShare && (
                 <button
                     onClick={handleNativeShare}
                     style={{

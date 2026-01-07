@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { analyzeSeo, SeoAnalysisResult } from '@/lib/seoAnalyzer';
@@ -218,8 +218,8 @@ export default function NewPostPage() {
                 audioUrl: audioUrl || '',
                 status: status || 'draft',
                 authorId: user.uid,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
                 isBreaking: !!isBreaking,
                 isFeatured: !!isFeatured,
                 views: 0
