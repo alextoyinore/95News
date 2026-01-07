@@ -156,6 +156,29 @@ export default function NewPostPage() {
         }
     };
 
+    const handleCreateCategory = async (name: string) => {
+        if (!name.trim()) return;
+
+        try {
+            const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+            const docRef = await addDoc(collection(db, "categories"), {
+                name: name.trim(),
+                slug,
+                parentId: null,
+                posts: 0
+            });
+
+            const newCategory = { id: docRef.id, name: name.trim() };
+            setAvailableCategories([...availableCategories, newCategory]);
+            setCategoryIds([...categoryIds, newCategory.id]);
+            setCategorySearch('');
+            setShowCategoryDropdown(false);
+        } catch (error) {
+            console.error("Error creating category:", error);
+            alert("Failed to create category");
+        }
+    };
+
     // Save Logic
     const handleSave = async (status: 'draft' | 'published') => {
         if (!title) {
@@ -184,18 +207,17 @@ export default function NewPostPage() {
                 title,
                 slug,
                 titleKeywords,
-                excerpt,
-                focusKeyword,
-                metaDescription,
+                excerpt: excerpt || '',
+                focusKeyword: focusKeyword || '',
+                metaDescription: metaDescription || '',
                 categoryIds,
                 tagIds: tags,
                 content: JSON.stringify(content),
-                featuredImageUrl: featuredImage || undefined,
-                featuredImageCaption,
-                audioUrl,
+                featuredImageUrl: featuredImage || '',
+                featuredImageCaption: featuredImageCaption || '',
+                audioUrl: audioUrl || '',
                 status,
                 authorId: user.uid,
-                publishedAt: status === 'published' ? new Date().toISOString() : undefined,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 isBreaking,
@@ -277,7 +299,7 @@ export default function NewPostPage() {
                                 <div style={{ position: "relative" }}>
                                     <input
                                         type="text"
-                                        placeholder="Search categories..."
+                                        placeholder="Search or Create category..."
                                         value={categorySearch}
                                         onChange={(e) => {
                                             setCategorySearch(e.target.value);
@@ -320,6 +342,20 @@ export default function NewPostPage() {
                                                     </div>
                                                 ))
                                             }
+                                            {categorySearch && !availableCategories.some(c => c.name.toLowerCase() === categorySearch.toLowerCase()) && (
+                                                <div
+                                                    onClick={() => handleCreateCategory(categorySearch)}
+                                                    style={{
+                                                        padding: "0.6rem 1rem",
+                                                        cursor: "pointer",
+                                                        color: "var(--accent)",
+                                                        fontWeight: "bold",
+                                                        borderTop: "1px solid var(--border)"
+                                                    }}
+                                                >
+                                                    + Create "{categorySearch}"
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

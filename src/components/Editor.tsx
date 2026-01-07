@@ -81,8 +81,48 @@ const Editor: React.FC<EditorProps> = ({ data, onChange, holder }) => {
                         image: {
                             class: Image,
                             config: {
-                                endpoints: {
-                                    byFile: '/api/upload/image',
+                                uploader: {
+                                    uploadByFile: async (file: File) => {
+                                        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+                                        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+                                        if (!cloudName || !uploadPreset) {
+                                            console.error("Cloudinary configuration missing");
+                                            return {
+                                                success: 0,
+                                            };
+                                        }
+
+                                        const formData = new FormData();
+                                        formData.append('file', file);
+                                        formData.append('upload_preset', uploadPreset);
+
+                                        try {
+                                            const response = await fetch(
+                                                `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+                                                {
+                                                    method: 'POST',
+                                                    body: formData,
+                                                }
+                                            );
+
+                                            if (!response.ok) throw new Error('Upload failed');
+
+                                            const result = await response.json();
+
+                                            return {
+                                                success: 1,
+                                                file: {
+                                                    url: result.secure_url,
+                                                }
+                                            };
+                                        } catch (error) {
+                                            console.error('EditorJS Upload Error:', error);
+                                            return {
+                                                success: 0,
+                                            };
+                                        }
+                                    }
                                 }
                             }
                         },

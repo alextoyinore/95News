@@ -158,13 +158,30 @@ export default function CommentSection({ postId }: CommentSectionProps) {
                         {comment.author?.displayName || comment.author?.email || 'User'}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                        {new Date(comment.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })}
+                        {(() => {
+                            const dateVal = comment.createdAt;
+                            if (!dateVal) return "";
+                            let date;
+                            try {
+                                if (typeof dateVal === 'object' && dateVal && 'toDate' in dateVal && typeof (dateVal as any).toDate === 'function') {
+                                    date = (dateVal as any).toDate();
+                                } else if (typeof dateVal === 'object' && dateVal && 'seconds' in dateVal) {
+                                    date = new Date((dateVal as any).seconds * 1000);
+                                } else {
+                                    date = new Date(dateVal);
+                                }
+                                if (isNaN(date.getTime())) return "Just now";
+                                return date.toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                });
+                            } catch (e) {
+                                return "Just now";
+                            }
+                        })()}
                     </div>
                 </div>
                 {user && user.uid === comment.authorId && (

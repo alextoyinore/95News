@@ -48,12 +48,39 @@ export default function MediaBrowser({ isOpen, onClose, onSelect }: MediaBrowser
 
         setUploading(true);
         try {
-            // MOCK UPLOAD LOGIC
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            const placeholderUrl = `https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80`;
+            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+            const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
+            if (!cloudName || !uploadPreset) {
+                console.error("Cloudinary configuration missing");
+                alert("Cloudinary configuration missing. Please check your environment variables.");
+                setUploading(false);
+                return;
+            }
+
+            // 1. Upload to Cloudinary (Unsigned)
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', uploadPreset);
+            // Optional: Add folder if needed, though usually defined in preset
+            // formData.append('folder', '95news'); 
+
+            const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!cloudRes.ok) {
+                const errData = await cloudRes.json();
+                throw new Error(errData.error?.message || 'Upload failed');
+            }
+
+            const cloudData = await cloudRes.json();
+            const imageUrl = cloudData.secure_url;
+
+            // 2. Save to Firestore
             const newItem: Omit<MediaItem, 'id'> = {
-                url: placeholderUrl,
+                url: imageUrl,
                 filename: file.name,
                 authorId: user.uid,
                 createdAt: new Date().toISOString()
@@ -65,7 +92,7 @@ export default function MediaBrowser({ isOpen, onClose, onSelect }: MediaBrowser
             setSelectedItem(addedItem);
         } catch (error) {
             console.error("Error uploading media:", error);
-            alert("Upload failed.");
+            alert("Upload failed. Please try again.");
         } finally {
             setUploading(false);
         }

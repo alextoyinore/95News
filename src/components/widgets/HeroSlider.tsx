@@ -151,6 +151,12 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
                     -webkit-box-orient: vertical;
                     overflow: hidden;
                 }
+                .hero-excerpt {
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
                 @media (max-width: 768px) {
                     .hero-slider {
                         height: 400px;
@@ -160,10 +166,7 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
                         padding: 3rem 1.5rem;
                     }
                     .hero-excerpt {
-                        display: -webkit-box;
                         -webkit-line-clamp: 2;
-                        -webkit-box-orient: vertical;
-                        overflow: hidden;
                     }
                 }
                 @media (max-width: 480px) {

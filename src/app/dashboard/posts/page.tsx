@@ -1,11 +1,13 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter, QueryConstraint, getCountFromServer } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter, QueryConstraint, getCountFromServer, where, updateDoc, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Post } from "@/types/firestore";
 import DashboardPagination from "@/components/DashboardPagination";
+import { Search, Star, Zap } from "lucide-react";
 
 export default function PostsPage() {
     const [posts, setPosts] = useState<Post[]>([]);
@@ -17,15 +19,50 @@ export default function PostsPage() {
     const [lastDoc, setLastDoc] = useState<any>(null);
     const [hasNextPage, setHasNextPage] = useState(false);
     const [pageTokens, setPageTokens] = useState<any[]>([null]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [searchDebounce, setSearchDebounce] = useState("");
+    const [featuredTagId, setFeaturedTagId] = useState<string | null>(null);
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearchDebounce(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         const init = async () => {
-            await fetchCategories();
+            await ensureFeaturedTag();
             await fetchTotalCount();
-            await fetchPosts(1, null, 10);
+            await fetchPosts(1, null, itemsPerPage);
         };
         init();
+    }, [itemsPerPage, statusFilter, searchDebounce]);
+
+    useEffect(() => {
+        fetchCategories();
     }, []);
+
+    const ensureFeaturedTag = async () => {
+        try {
+            const q = query(collection(db, "tags"), where("slug", "==", "featured"));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                setFeaturedTagId(snapshot.docs[0].id);
+            } else {
+                // Create it if it doesn't exist
+                const docRef = await addDoc(collection(db, "tags"), {
+                    name: "Featured",
+                    slug: "featured"
+                });
+                setFeaturedTagId(docRef.id);
+            }
+        } catch (error) {
+            console.error("Error ensuring featured tag:", error);
+        }
+    };
 
     const fetchCategories = async () => {
         try {
@@ -42,6 +79,12 @@ export default function PostsPage() {
 
     const fetchTotalCount = async () => {
         try {
+            if (statusFilter !== 'all' || searchDebounce) {
+                // Hide pagination count for now in filtered view
+                setTotalItems(0);
+                return;
+            }
+
             const coll = collection(db, "posts");
             const snapshot = await getCountFromServer(coll);
             setTotalItems(snapshot.data().count);
@@ -53,11 +96,23 @@ export default function PostsPage() {
     const fetchPosts = async (page: number, startAfterDoc: any, limitCount: number) => {
         setLoading(true);
         try {
-            // Fetch items for current page + 1 to check if next page exists
-            const constraints: QueryConstraint[] = [
-                orderBy("createdAt", "desc"),
-                limit(limitCount + 1)
-            ];
+            const constraints: QueryConstraint[] = [];
+
+            if (searchDebounce) {
+                const slugStart = searchDebounce.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+                constraints.push(orderBy("slug"));
+                constraints.push(where("slug", ">=", slugStart));
+                constraints.push(where("slug", "<=", slugStart + '\uf8ff'));
+            } else {
+                constraints.push(orderBy("createdAt", "desc"));
+            }
+
+            if (statusFilter !== 'all') {
+                constraints.push(where("status", "==", statusFilter));
+            }
+
+            constraints.push(limit(limitCount + 1));
+
             if (startAfterDoc) {
                 constraints.push(startAfter(startAfterDoc));
             }
@@ -77,7 +132,9 @@ export default function PostsPage() {
             setHasNextPage(hasNext);
             setLastDoc(docs[items.length - 1] || null);
 
-            if (page > pageTokens.length - 1) {
+            if (page === 1) {
+                setPageTokens([null]);
+            } else if (page > pageTokens.length - 1) {
                 setPageTokens([...pageTokens, startAfterDoc]);
             }
         } catch (error) {
@@ -91,7 +148,7 @@ export default function PostsPage() {
         setItemsPerPage(newLimit);
         setCurrentPage(1);
         setPageTokens([null]);
-        fetchPosts(1, null, newLimit);
+        // fetchPosts triggered by effect
     };
 
     const handleNext = () => {
@@ -107,6 +164,55 @@ export default function PostsPage() {
             const prevPage = currentPage - 1;
             setCurrentPage(prevPage);
             fetchPosts(prevPage, pageTokens[prevPage], itemsPerPage);
+        }
+    };
+
+    // Toggle handlers
+    const handleToggleAttribute = async (post: Post, attribute: 'isFeatured' | 'isBreaking') => {
+
+        if (attribute === 'isBreaking') {
+            const newValue = !post.isBreaking;
+            // Optimistic update
+            setPosts(posts.map(p => p.id === post.id ? { ...p, isBreaking: newValue } : p));
+            try {
+                await updateDoc(doc(db, "posts", post.id), {
+                    isBreaking: newValue
+                });
+            } catch (error) {
+                console.error("Error updating isBreaking:", error);
+                setPosts(posts.map(p => p.id === post.id ? { ...p, isBreaking: post.isBreaking } : p));
+                alert("Failed to update Breaking status.");
+            }
+            return;
+        }
+
+        // Handle Featured as Tag
+        if (attribute === 'isFeatured') {
+            if (!featuredTagId) {
+                alert("Featured tag not initialized yet.");
+                return;
+            }
+            const currentTags = post.tagIds || [];
+            const isCurrentlyFeatured = currentTags.includes(featuredTagId);
+            let newTags;
+            if (isCurrentlyFeatured) {
+                newTags = currentTags.filter(id => id !== featuredTagId);
+            } else {
+                newTags = [...currentTags, featuredTagId];
+            }
+
+            // Optimistic update
+            setPosts(posts.map(p => p.id === post.id ? { ...p, tagIds: newTags } : p));
+
+            try {
+                await updateDoc(doc(db, "posts", post.id), {
+                    tagIds: newTags
+                });
+            } catch (error) {
+                console.error("Error updating featured tag:", error);
+                setPosts(posts.map(p => p.id === post.id ? { ...p, tagIds: currentTags, isFeatured: isCurrentlyFeatured } : p));
+                alert("Failed to update Featured status.");
+            }
         }
     };
 
@@ -159,6 +265,29 @@ export default function PostsPage() {
                 </Link>
             </div>
 
+            {/* Filters */}
+            <div className="glass" style={{ padding: "1rem", borderRadius: "var(--radius-md)", marginBottom: "1.5rem", display: "flex", gap: "1rem", alignItems: "center" }}>
+                <div style={{ position: "relative", flex: 1 }}>
+                    <Search size={18} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }} />
+                    <input
+                        type="text"
+                        placeholder="Search posts..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{ width: "100%", padding: "0.7rem 1rem 0.7rem 2.4rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", backgroundColor: "var(--bg-primary)" }}
+                    />
+                </div>
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{ padding: "0.7rem 1rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", backgroundColor: "var(--bg-primary)", outline: "none" }}
+                >
+                    <option value="all">All Status</option>
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                </select>
+            </div>
+
             <div className="glass" style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                     <thead>
@@ -166,6 +295,8 @@ export default function PostsPage() {
                             <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Title</th>
                             <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Category</th>
                             <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Status</th>
+                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600", textAlign: "center" }}>Featured</th>
+                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600", textAlign: "center" }}>Breaking</th>
                             <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Date</th>
                             <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
                         </tr>
@@ -173,7 +304,7 @@ export default function PostsPage() {
                     <tbody>
                         {posts.length === 0 ? (
                             <tr>
-                                <td colSpan={5} style={{ padding: "2rem", textAlign: "center", color: "var(--text-secondary)" }}>
+                                <td colSpan={7} style={{ padding: "2rem", textAlign: "center", color: "var(--text-secondary)" }}>
                                     No posts found. Create your first one!
                                 </td>
                             </tr>
@@ -205,6 +336,36 @@ export default function PostsPage() {
                                         }}>
                                             {post.status}
                                         </span>
+                                    </td>
+                                    <td style={{ padding: "1.2rem 1.5rem", textAlign: "center" }}>
+                                        <button
+                                            onClick={() => handleToggleAttribute(post, 'isFeatured')}
+                                            style={{
+                                                background: "none",
+                                                border: "none",
+                                                cursor: "pointer",
+                                                color: (featuredTagId && post.tagIds?.includes(featuredTagId)) ? "#fbbf24" : "var(--text-disabled)",
+                                                transition: "color 0.2s"
+                                            }}
+                                            title="Toggle Featured"
+                                        >
+                                            <Star size={20} fill={(featuredTagId && post.tagIds?.includes(featuredTagId)) ? "#fbbf24" : "none"} />
+                                        </button>
+                                    </td>
+                                    <td style={{ padding: "1.2rem 1.5rem", textAlign: "center" }}>
+                                        <button
+                                            onClick={() => handleToggleAttribute(post, 'isBreaking')}
+                                            style={{
+                                                background: "none",
+                                                border: "none",
+                                                cursor: "pointer",
+                                                color: post.isBreaking ? "#ef4444" : "var(--text-disabled)",
+                                                transition: "color 0.2s"
+                                            }}
+                                            title="Toggle Breaking News"
+                                        >
+                                            <Zap size={20} fill={post.isBreaking ? "#ef4444" : "none"} />
+                                        </button>
                                     </td>
                                     <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
                                         {formatDate(post.createdAt)}

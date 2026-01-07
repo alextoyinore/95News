@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Search } from "lucide-react";
 import Link from "next/link";
-import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter, QueryConstraint, getCountFromServer } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter, QueryConstraint, getCountFromServer, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Page } from "@/types/firestore";
 import DashboardPagination from "@/components/DashboardPagination";
@@ -17,14 +17,29 @@ export default function PagesListPage() {
     const [lastDoc, setLastDoc] = useState<any>(null);
     const [hasNextPage, setHasNextPage] = useState(false);
     const [pageTokens, setPageTokens] = useState<any[]>([null]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [searchDebounce, setSearchDebounce] = useState("");
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearchDebounce(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         fetchTotalCount();
         fetchPages(1, null, itemsPerPage);
-    }, []);
+    }, [itemsPerPage, statusFilter, searchDebounce]);
 
     const fetchTotalCount = async () => {
         try {
+            if (statusFilter !== 'all' || searchDebounce) {
+                setTotalItems(0);
+                return;
+            }
             const snapshot = await getCountFromServer(collection(db, "pages"));
             setTotalItems(snapshot.data().count);
         } catch (error) {
@@ -35,10 +50,23 @@ export default function PagesListPage() {
     const fetchPages = async (page: number, startAfterDoc: any, limitCount: number) => {
         setLoading(true);
         try {
-            const constraints: QueryConstraint[] = [
-                orderBy("updatedAt", "desc"),
-                limit(limitCount + 1)
-            ];
+            const constraints: QueryConstraint[] = [];
+
+            if (searchDebounce) {
+                const slugStart = searchDebounce.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+                constraints.push(orderBy("slug"));
+                constraints.push(where("slug", ">=", slugStart));
+                constraints.push(where("slug", "<=", slugStart + '\uf8ff'));
+            } else {
+                constraints.push(orderBy("updatedAt", "desc"));
+            }
+
+            if (statusFilter !== 'all') {
+                constraints.push(where("status", "==", statusFilter));
+            }
+
+            constraints.push(limit(limitCount + 1));
+
             if (startAfterDoc) {
                 constraints.push(startAfter(startAfterDoc));
             }
@@ -57,7 +85,9 @@ export default function PagesListPage() {
             setHasNextPage(hasNext);
             setLastDoc(docs[items.length - 1] || null);
 
-            if (page > pageTokens.length - 1) {
+            if (page === 1) {
+                setPageTokens([null]);
+            } else if (page > pageTokens.length - 1) {
                 setPageTokens([...pageTokens, startAfterDoc]);
             }
         } catch (error) {
@@ -71,7 +101,7 @@ export default function PagesListPage() {
         setItemsPerPage(newLimit);
         setCurrentPage(1);
         setPageTokens([null]);
-        fetchPages(1, null, newLimit);
+        // fetchPages triggered by effect
     };
 
     const handleNext = () => {
@@ -124,11 +154,34 @@ export default function PagesListPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
                 <div>
                     <h1 style={{ fontSize: "2rem", fontWeight: "800", marginBottom: "0.5rem" }}>Pages</h1>
-                    <p style={{ color: "var(--text-secondary)" }}>Manage static content and legal pages.</p>
+                    <p style={{ color: "var(--text-secondary)" }}>Manage your static pages.</p>
                 </div>
-                <Link href="/dashboard/pages/new" className="btn btn-primary" style={{ gap: "0.5rem" }}>
-                    <Plus size={18} /> Create New Page
+                <Link href="/dashboard/pages/new" className="btn btn-primary">
+                    + Create New Page
                 </Link>
+            </div>
+
+            {/* Filters */}
+            <div className="glass" style={{ padding: "1rem", borderRadius: "var(--radius-md)", marginBottom: "1.5rem", display: "flex", gap: "1rem", alignItems: "center" }}>
+                <div style={{ position: "relative", flex: 1 }}>
+                    <Search size={18} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }} />
+                    <input
+                        type="text"
+                        placeholder="Search pages..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{ width: "100%", padding: "0.7rem 1rem 0.7rem 2.4rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", backgroundColor: "var(--bg-primary)" }}
+                    />
+                </div>
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    style={{ padding: "0.7rem 1rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", backgroundColor: "var(--bg-primary)", outline: "none" }}
+                >
+                    <option value="all">All Status</option>
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                </select>
             </div>
 
             <div className="glass" style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}>

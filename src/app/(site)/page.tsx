@@ -75,20 +75,43 @@ async function fetchSectionPosts(slugs: string | string[], count: number = 4) {
   return await resolvePostsData(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
 }
 
-export default async function Home() {
-  // 1. Fetch Hero Posts
-  const heroQuery = query(
+async function fetchLatestPosts(count: number = 4) {
+  const q = query(
     collection(db, "posts"),
-    where("tagIds", "array-contains", "featured"),
     where("status", "==", "published"),
     orderBy("createdAt", "desc"),
-    limit(3)
+    limit(count)
   );
+  const snap = await getDocs(q);
+  return await resolvePostsData(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
+}
 
-  const heroSnap = await getDocs(heroQuery);
-  const heroPosts = await resolvePostsData(heroSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
+export default async function Home() {
+  // 1. Fetch Hero Posts (Featured)
+  let featuredTagId = null;
+  const tagQuery = query(collection(db, "tags"), where("slug", "==", "featured"), limit(1));
+  const tagSnap = await getDocs(tagQuery);
+  if (!tagSnap.empty) {
+    featuredTagId = tagSnap.docs[0].id;
+  }
+
+  let heroPosts: any[] = [];
+
+  if (featuredTagId) {
+    const heroQuery = query(
+      collection(db, "posts"),
+      where("tagIds", "array-contains", featuredTagId),
+      where("status", "==", "published"),
+      orderBy("createdAt", "desc"),
+      limit(3)
+    );
+
+    const heroSnap = await getDocs(heroQuery);
+    heroPosts = await resolvePostsData(heroSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
+  }
 
   // 2. Fetch specific sections
+  const latestNewsPosts = await fetchLatestPosts(4);
   const techPosts = await fetchSectionPosts(["technology", "tech"], 4);
   const businessPosts = await fetchSectionPosts("business", 4);
   const politicsPosts = await fetchSectionPosts(["politics", "political"], 4);
@@ -133,7 +156,10 @@ export default async function Home() {
         marginTop: heroPosts.length === 0 ? "2rem" : "0"
       }}>
         <main>
-          <CategoryHighlight title="Technology" posts={techPosts} />
+          <CategoryHighlight title="News" posts={latestNewsPosts} />
+          <div style={{ margin: "3rem 0" }}>
+            <CategoryHighlight title="Technology" posts={techPosts} />
+          </div>
           {businessPosts.length > 0 && <CategoryHighlight title="Business" posts={businessPosts} />}
 
           {politicsPosts.length > 0 && (

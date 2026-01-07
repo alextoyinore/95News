@@ -74,7 +74,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         { label: "Article" }
     ];
 
-    const authorDisplayName = post.author?.displayName || post.author?.email || "Unknown Author";
+    const authorDisplayName = post.author?.displayName || post.author?.email || "95News";
     const authorId = post.author?.id;
     const currentUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/${slug}`;
 

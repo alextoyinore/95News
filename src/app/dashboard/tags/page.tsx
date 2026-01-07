@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, Plus } from "lucide-react";
-import { collection, addDoc, deleteDoc, doc, getDocs, query, orderBy, limit, startAfter, QueryConstraint, getCountFromServer } from "firebase/firestore";
+import { Pencil, Trash2, Plus, Search } from "lucide-react";
+import { collection, addDoc, deleteDoc, doc, getDocs, query, orderBy, limit, startAfter, QueryConstraint, getCountFromServer, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Tag } from "@/types/firestore";
 import DashboardPagination from "@/components/DashboardPagination";
@@ -18,14 +18,28 @@ export default function TagsPage() {
     const [lastDoc, setLastDoc] = useState<any>(null);
     const [hasNextPage, setHasNextPage] = useState(false);
     const [pageTokens, setPageTokens] = useState<any[]>([null]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchDebounce, setSearchDebounce] = useState("");
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearchDebounce(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         fetchTotalCount();
         fetchTags(1, null, itemsPerPage);
-    }, []);
+    }, [itemsPerPage, searchDebounce]);
 
     const fetchTotalCount = async () => {
         try {
+            if (searchDebounce) {
+                setTotalItems(0);
+                return;
+            }
             const snapshot = await getCountFromServer(collection(db, "tags"));
             setTotalItems(snapshot.data().count);
         } catch (error) {
@@ -36,10 +50,19 @@ export default function TagsPage() {
     const fetchTags = async (page: number, startAfterDoc: any, limitCount: number) => {
         setLoading(true);
         try {
-            const constraints: QueryConstraint[] = [
-                orderBy("name"),
-                limit(limitCount + 1)
-            ];
+            const constraints: QueryConstraint[] = [];
+
+            if (searchDebounce) {
+                const slugStart = searchDebounce.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+                constraints.push(orderBy("slug"));
+                constraints.push(where("slug", ">=", slugStart));
+                constraints.push(where("slug", "<=", slugStart + '\uf8ff'));
+            } else {
+                constraints.push(orderBy("name"));
+            }
+
+            constraints.push(limit(limitCount + 1));
+
             if (startAfterDoc) {
                 constraints.push(startAfter(startAfterDoc));
             }
@@ -59,7 +82,9 @@ export default function TagsPage() {
             setHasNextPage(hasNext);
             setLastDoc(docs[items.length - 1] || null);
 
-            if (page > pageTokens.length - 1) {
+            if (page === 1) {
+                setPageTokens([null]);
+            } else if (page > pageTokens.length - 1) {
                 setPageTokens([...pageTokens, startAfterDoc]);
             }
         } catch (error) {
@@ -73,7 +98,7 @@ export default function TagsPage() {
         setItemsPerPage(newLimit);
         setCurrentPage(1);
         setPageTokens([null]);
-        fetchTags(1, null, newLimit);
+        // fetchTags triggered by effect
     };
 
     const handleNext = () => {
@@ -105,6 +130,7 @@ export default function TagsPage() {
             fetchTotalCount();
             fetchTags(1, null, itemsPerPage);
             setCurrentPage(1);
+            setPageTokens([null]); // Reset pagination
         } catch (error) {
             console.error("Error adding tag:", error);
             alert("Failed to add tag.");
@@ -124,7 +150,7 @@ export default function TagsPage() {
         }
     };
 
-    if (loading) return <div style={{ padding: "3rem", textAlign: "center" }}>Loading tags...</div>;
+    if (loading && pageTokens.length === 1 && !tags.length) return <div style={{ padding: "3rem", textAlign: "center" }}>Loading tags...</div>;
 
     return (
         <div>
@@ -139,6 +165,18 @@ export default function TagsPage() {
                 >
                     + Add New Tag
                 </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="glass" style={{ padding: "1rem", borderRadius: "var(--radius-md)", marginBottom: "1.5rem", position: "relative" }}>
+                <Search size={18} style={{ position: "absolute", left: "28px", top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)" }} />
+                <input
+                    type="text"
+                    placeholder="Search tags..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ width: "100%", padding: "0.7rem 1rem 0.7rem 2.4rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", backgroundColor: "var(--bg-primary)" }}
+                />
             </div>
 
             {showAddModal && (
