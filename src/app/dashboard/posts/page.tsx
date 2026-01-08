@@ -292,7 +292,7 @@ export default function PostsPage() {
 
     return (
         <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
                 <div>
                     <h1 style={{ fontSize: "2rem", fontWeight: "800", marginBottom: "0.5rem" }}>Posts</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Manage your stories and articles.</p>
@@ -326,111 +326,112 @@ export default function PostsPage() {
             </div>
 
             <div className="glass" style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                    <thead>
-                        <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Title</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Category</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Status</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600", textAlign: "center" }}>Featured</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600", textAlign: "center" }}>Breaking</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Date</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {posts.length === 0 ? (
-                            <tr>
-                                <td colSpan={7} style={{ padding: "2rem", textAlign: "center", color: "var(--text-secondary)" }}>
-                                    No posts found. Create your first one!
-                                </td>
+                <div className="table-container">
+                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                        <thead>
+                            <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Title</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Category</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Status</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600", textAlign: "center" }}>Featured</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600", textAlign: "center" }}>Breaking</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Date</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
                             </tr>
-                        ) : (
-                            posts.map((post) => (
-                                <tr key={post.id} style={{ borderBottom: "1px solid var(--border)", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--bg-tertiary)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <div style={{ fontWeight: "600" }}>{post.title}</div>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                                            {post.categoryIds && post.categoryIds.length > 0 ? (
-                                                post.categoryIds.map(id => (
-                                                    <span key={id} style={{ fontSize: "0.85rem", padding: "0.2rem 0.5rem", borderRadius: "4px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
-                                                        {categoriesMap[id] || id}
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Uncategorized</span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <select
-                                            value={post.status}
-                                            onChange={(e) => handleStatusChange(post, e.target.value as any)}
-                                            style={{
-                                                padding: "0.4rem 0.6rem",
-                                                borderRadius: "var(--radius-sm)",
-                                                border: "1px solid var(--border)",
-                                                backgroundColor: "var(--bg-secondary)",
-                                                color: post.status === "published" ? "#10b981" : post.status === "draft" ? "#f59e0b" : "#ef4444",
-                                                fontWeight: "600",
-                                                fontSize: "0.85rem",
-                                                outline: "none",
-                                                cursor: "pointer",
-                                                textTransform: "capitalize"
-                                            }}
-                                        >
-                                            <option value="published" style={{ color: "#10b981" }}>Published</option>
-                                            <option value="draft" style={{ color: "#f59e0b" }}>Draft</option>
-                                            <option value="archived" style={{ color: "#ef4444" }}>Archived</option>
-                                        </select>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem", textAlign: "center" }}>
-                                        <button
-                                            onClick={() => handleToggleAttribute(post, 'isFeatured')}
-                                            style={{
-                                                background: "none",
-                                                border: "none",
-                                                cursor: "pointer",
-                                                color: (featuredTagId && post.tagIds?.includes(featuredTagId)) ? "#fbbf24" : "var(--text-disabled)",
-                                                transition: "color 0.2s"
-                                            }}
-                                            title="Toggle Featured"
-                                        >
-                                            <Star size={20} fill={(featuredTagId && post.tagIds?.includes(featuredTagId)) ? "#fbbf24" : "none"} />
-                                        </button>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem", textAlign: "center" }}>
-                                        <button
-                                            onClick={() => handleToggleAttribute(post, 'isBreaking')}
-                                            style={{
-                                                background: "none",
-                                                border: "none",
-                                                cursor: "pointer",
-                                                color: post.isBreaking ? "#ef4444" : "var(--text-disabled)",
-                                                transition: "color 0.2s"
-                                            }}
-                                            title="Toggle Breaking News"
-                                        >
-                                            <Zap size={20} fill={post.isBreaking ? "#ef4444" : "none"} />
-                                        </button>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
-                                        {formatDate(post.createdAt)}
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <div style={{ display: "flex", gap: "0.8rem" }}>
-                                            <Link href={`/dashboard/posts/${post.id}`} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", textDecoration: "none" }} title="Edit">✏️</Link>
-                                            <button onClick={() => handleDelete(post.id)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem" }} title="Delete">🗑️</button>
-                                        </div>
+                        </thead>
+                        <tbody>
+                            {posts.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} style={{ padding: "2rem", textAlign: "center", color: "var(--text-secondary)" }}>
+                                        No posts found. Create your first one!
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-                <DashboardPagination
+                            ) : (
+                                posts.map((post) => (
+                                    <tr key={post.id} style={{ borderBottom: "1px solid var(--border)", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--bg-tertiary)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ fontWeight: "600" }}>{post.title}</div>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                                                {post.categoryIds && post.categoryIds.length > 0 ? (
+                                                    post.categoryIds.map(id => (
+                                                        <span key={id} style={{ fontSize: "0.85rem", padding: "0.2rem 0.5rem", borderRadius: "4px", backgroundColor: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
+                                                            {categoriesMap[id] || id}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Uncategorized</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <select
+                                                value={post.status}
+                                                onChange={(e) => handleStatusChange(post, e.target.value as any)}
+                                                style={{
+                                                    padding: "0.4rem 0.6rem",
+                                                    borderRadius: "var(--radius-sm)",
+                                                    border: "1px solid var(--border)",
+                                                    backgroundColor: "var(--bg-secondary)",
+                                                    color: post.status === "published" ? "#10b981" : post.status === "draft" ? "#f59e0b" : "#ef4444",
+                                                    fontWeight: "600",
+                                                    fontSize: "0.85rem",
+                                                    outline: "none",
+                                                    cursor: "pointer",
+                                                    textTransform: "capitalize"
+                                                }}
+                                            >
+                                                <option value="published" style={{ color: "#10b981" }}>Published</option>
+                                                <option value="draft" style={{ color: "#f59e0b" }}>Draft</option>
+                                                <option value="archived" style={{ color: "#ef4444" }}>Archived</option>
+                                            </select>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem", textAlign: "center" }}>
+                                            <button
+                                                onClick={() => handleToggleAttribute(post, 'isFeatured')}
+                                                style={{
+                                                    background: "none",
+                                                    border: "none",
+                                                    cursor: "pointer",
+                                                    color: (featuredTagId && post.tagIds?.includes(featuredTagId)) ? "#fbbf24" : "var(--text-disabled)",
+                                                    transition: "color 0.2s"
+                                                }}
+                                                title="Toggle Featured"
+                                            >
+                                                <Star size={20} fill={(featuredTagId && post.tagIds?.includes(featuredTagId)) ? "#fbbf24" : "none"} />
+                                            </button>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem", textAlign: "center" }}>
+                                            <button
+                                                onClick={() => handleToggleAttribute(post, 'isBreaking')}
+                                                style={{
+                                                    background: "none",
+                                                    border: "none",
+                                                    cursor: "pointer",
+                                                    color: post.isBreaking ? "#ef4444" : "var(--text-disabled)",
+                                                    transition: "color 0.2s"
+                                                }}
+                                                title="Toggle Breaking News"
+                                            >
+                                                <Zap size={20} fill={post.isBreaking ? "#ef4444" : "none"} />
+                                            </button>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                                            {formatDate(post.createdAt)}
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ display: "flex", gap: "0.8rem" }}>
+                                                <Link href={`/dashboard/posts/${post.id}`} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", textDecoration: "none" }} title="Edit">✏️</Link>
+                                                <button onClick={() => handleDelete(post.id)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem" }} title="Delete">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>   <DashboardPagination
                     currentPage={currentPage}
                     hasNextPage={hasNextPage}
                     onNext={handleNext}

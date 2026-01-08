@@ -126,7 +126,7 @@ export default function NavigationPage() {
 
     return (
         <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
                 <div>
                     <h1 style={{ fontSize: "2rem", fontWeight: "800", marginBottom: "0.5rem" }}>Navigation Management</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Build and organize your site's header and footer menus.</p>

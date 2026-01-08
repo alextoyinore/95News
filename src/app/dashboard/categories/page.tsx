@@ -271,7 +271,7 @@ export default function CategoriesPage() {
 
     return (
         <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
                 <div>
                     <h1 style={{ fontSize: "2rem", fontWeight: "800", marginBottom: "0.5rem" }}>Categories</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Manage content categories and hierarchy.</p>
@@ -395,59 +395,61 @@ export default function CategoriesPage() {
             )}
 
             <div className="glass" style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                    <thead>
-                        <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Name</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Slug</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Parent</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Posts Count</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {categories.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
-                                    No categories found.
-                                </td>
+                <div className="table-container">
+                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                        <thead>
+                            <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Name</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Slug</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Parent</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Posts Count</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
                             </tr>
-                        ) : (
-                            categories.map((cat) => (
-                                <tr key={cat.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <div style={{ fontWeight: "600" }}>{cat.name}</div>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>/{cat.slug}</td>
-                                    <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>
-                                        {getParentName(cat.parentId)}
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{0} articles</span>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <div style={{ display: "flex", gap: "1rem" }}>
-                                            <button
-                                                onClick={() => handleEditClick(cat)}
-                                                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)" }}
-                                                title="Edit"
-                                            >
-                                                <Pencil size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(cat.id)}
-                                                style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444" }}
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
+                        </thead>
+                        <tbody>
+                            {categories.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
+                                        No categories found.
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                categories.map((cat) => (
+                                    <tr key={cat.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ fontWeight: "600" }}>{cat.name}</div>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>/{cat.slug}</td>
+                                        <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>
+                                            {getParentName(cat.parentId)}
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>{0} articles</span>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ display: "flex", gap: "1rem" }}>
+                                                <button
+                                                    onClick={() => handleEditClick(cat)}
+                                                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)" }}
+                                                    title="Edit"
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(cat.id)}
+                                                    style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444" }}
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
                 <DashboardPagination
                     currentPage={currentPage}
                     hasNextPage={hasNextPage}

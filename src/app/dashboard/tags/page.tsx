@@ -154,7 +154,7 @@ export default function TagsPage() {
 
     return (
         <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
                 <div>
                     <h1 style={{ fontSize: "2rem", fontWeight: "800", marginBottom: "0.5rem" }}>Tags</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Manage article tags and metadata.</p>
@@ -222,49 +222,51 @@ export default function TagsPage() {
             )}
 
             <div className="glass" style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                    <thead>
-                        <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Name</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Slug</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Usage Count</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {tags.length === 0 ? (
-                            <tr>
-                                <td colSpan={4} style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
-                                    No tags found.
-                                </td>
+                <div className="table-container">
+                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                        <thead>
+                            <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Name</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Slug</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Usage Count</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
                             </tr>
-                        ) : (
-                            tags.map((tag) => (
-                                <tr key={tag.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <div style={{ fontWeight: "600" }}># {tag.name}</div>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>{tag.slug}</td>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Used in {0} posts</span>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <div style={{ display: "flex", gap: "0.8rem" }}>
-                                            <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem" }} title="Edit">✏️</button>
-                                            <button
-                                                onClick={() => handleDelete(tag.id)}
-                                                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem" }}
-                                                title="Delete"
-                                            >
-                                                🗑️
-                                            </button>
-                                        </div>
+                        </thead>
+                        <tbody>
+                            {tags.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
+                                        No tags found.
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                tags.map((tag) => (
+                                    <tr key={tag.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ fontWeight: "600" }}># {tag.name}</div>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>{tag.slug}</td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <span style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>Used in {0} posts</span>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ display: "flex", gap: "0.8rem" }}>
+                                                <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem" }} title="Edit">✏️</button>
+                                                <button
+                                                    onClick={() => handleDelete(tag.id)}
+                                                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem" }}
+                                                    title="Delete"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
                 <DashboardPagination
                     currentPage={currentPage}
                     hasNextPage={hasNextPage}

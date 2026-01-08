@@ -44,12 +44,13 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const { user, userRecord, signOut } = useAuth();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
         <AuthGuard>
             <div style={{ display: "flex", height: "100vh", backgroundColor: "var(--bg-secondary)", overflow: "hidden" }}>
                 {/* Dashboard Sidebar */}
-                <aside className="glass" style={{
+                <aside className={`glass dashboard-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{
                     width: isCollapsed ? "80px" : "280px",
                     padding: isCollapsed ? "2rem 0.5rem" : "2rem 1.5rem",
                     display: "flex",
@@ -58,8 +59,8 @@ export default function DashboardLayout({
                     overflowY: "auto",
                     borderRight: "1px solid var(--border)",
                     flexShrink: 0,
-                    transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease",
-                    position: "relative"
+                    transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease, transform 0.3s ease",
+                    // position: "relative" // Moved to CSS for mobile override
                 }}>
                     <div style={{
                         marginBottom: "3rem",
@@ -85,7 +86,7 @@ export default function DashboardLayout({
                             .map((item) => {
                                 const isActive = pathname === item.href;
                                 return (
-                                    <Link key={item.name} href={item.href}>
+                                    <Link key={item.name} href={item.href} onClick={() => setMobileMenuOpen(false)}>
                                         <div style={{
                                             display: "flex",
                                             alignItems: "center",
@@ -153,10 +154,27 @@ export default function DashboardLayout({
                     </div>
                 </aside>
 
+                {/* Mobile Menu Overlay */}
+                {mobileMenuOpen && (
+                    <div
+                        onClick={() => setMobileMenuOpen(false)}
+                        style={{
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: "rgba(0,0,0,0.5)",
+                            zIndex: 999,
+                            backdropFilter: "blur(2px)"
+                        }}
+                    />
+                )}
+
                 {/* Dashboard Content Area */}
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-                    <DashboardNavbar />
-                    <main style={{
+                    <DashboardNavbar onToggleSidebar={() => setMobileMenuOpen(!mobileMenuOpen)} />
+                    <main className="dashboard-main" style={{
                         flex: 1,
                         padding: isCollapsed ? "2rem 1.5rem" : "2rem 3rem",
                         overflowY: "auto",

@@ -178,7 +178,7 @@ export default function UserManagementPage() {
 
     return (
         <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
                 <div>
                     <h1 style={{ fontSize: "2rem", fontWeight: "800", marginBottom: "0.5rem" }}>User Management</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Manage permissions and access levels for staff and readers.</p>

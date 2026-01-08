@@ -143,12 +143,7 @@ export default function DashboardPage() {
         <div>
             <h1 style={{ marginBottom: "2rem" }}>Overview</h1>
 
-            <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: "1.5rem",
-                marginBottom: "3rem"
-            }}>
+            <div className="dashboard-grid" style={{ marginBottom: "3rem" }}>
                 {[
                     { label: "Total Posts", value: stats.totalPosts, icon: FileText, trend: "+12%" },
                     { label: "Page Views", value: stats.pageViews >= 1000 ? `${(stats.pageViews / 1000).toFixed(1)}k` : stats.pageViews, icon: Eye, trend: "+18%" },
@@ -168,7 +163,7 @@ export default function DashboardPage() {
                 ))}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "2rem", marginBottom: "3rem" }}>
+            <div className="dashboard-grid" style={{ marginBottom: "3rem", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))" }}>
                 <div className="glass" style={{ padding: "2rem", borderRadius: "var(--radius-lg)" }}>
                     <h3 style={{ marginBottom: "1.5rem" }}>Traffic Analytics</h3>
                     <div style={{ height: "300px" }}>
@@ -183,7 +178,7 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+            <div className="dashboard-grid" style={{ gap: "2rem" }}>
                 <div className="glass" style={{ padding: "2rem", borderRadius: "var(--radius-lg)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
                         <h3>Recent Activity</h3>

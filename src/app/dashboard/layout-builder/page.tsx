@@ -80,7 +80,7 @@ export default function LayoutBuilderPage() {
 
     return (
         <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div className="dashboard-page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
                 <div>
                     <h1 style={{ marginBottom: "0.5rem" }}>Layout Builder</h1>
                     <p style={{ color: "var(--text-secondary)" }}>Customize how your homepage and categories look to your readers.</p>

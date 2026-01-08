@@ -5,39 +5,20 @@ import { useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, User, Settings, ChevronDown } from "lucide-react";
+import { LogOut, User, Settings, ChevronDown, Menu, Activity } from "lucide-react";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export default function DashboardNavbar() {
+export default function DashboardNavbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     const [totalPostsToday, setTotalPostsToday] = useState(0);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const { user, userRecord, signOut } = useAuth();
-
-    useEffect(() => {
-        const fetchTodayCount = async () => {
-            try {
-                // Get start of today
-                const now = new Date();
-                const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-                const q = query(
-                    collection(db, "posts"),
-                    where("createdAt", ">=", startOfToday)
-                );
-                const snap = await getDocs(q);
-                setTotalPostsToday(snap.size);
-            } catch (error) {
-                console.error("Error fetching today's count:", error);
-            }
-        };
-        fetchTodayCount();
-    }, []);
+    // ... (keep generic useEffect)
 
     const initials = (userRecord?.displayName || user?.email || 'U').charAt(0).toUpperCase();
 
     return (
-        <header className="glass" style={{
+        <header className="glass dashboard-header" style={{
             height: "70px",
             padding: "0 2rem",
             display: "flex",
@@ -49,27 +30,53 @@ export default function DashboardNavbar() {
             zIndex: 100,
             backgroundColor: "var(--glass-bg)"
         }}>
-            <div style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
+            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                {/* Mobile Sidebar Toggle */}
+                <button
+                    onClick={onToggleSidebar}
+                    className="mobile-only-flex"
+                    style={{
+                        display: "none",
+                        background: "none",
+                        border: "none",
+                        padding: "0.5rem",
+                        cursor: "pointer",
+                        marginRight: "0.5rem",
+                        color: "var(--text-primary)"
+                    }}
+                >
+                    <Menu size={24} />
+                </button>
+
                 <div style={{
                     display: "flex",
                     flexDirection: "column",
                     lineHeight: "1.2"
                 }}>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase" }}>Today's Activity</span>
-                    <span style={{ fontSize: "1.1rem", fontWeight: "700" }}>{totalPostsToday} New Posts</span>
+                    <div className="activity-desktop">
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", display: "block" }}>Today's Activity</span>
+                        <span style={{ fontSize: "1.1rem", fontWeight: "700" }}>{totalPostsToday} New Posts</span>
+                    </div>
+                    <div className="activity-mobile" title="Today's Activity">
+                        <Activity size={20} className="text-accent" style={{ color: "var(--accent)" }} />
+                        <span>{totalPostsToday}</span>
+                    </div>
                 </div>
             </div>
 
             <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-                <ThemeToggle />
-                <Link href="/dashboard/pages/new" className="btn" style={{ fontSize: "0.9rem", border: "1px solid var(--border)", borderRadius: "var(--radius-md)" }}>
+                <div className="theme-toggle-wrapper">
+                    <ThemeToggle />
+                </div>
+                <Link href="/dashboard/pages/new" className="btn add-page-btn" style={{ fontSize: "0.9rem", border: "1px solid var(--border)", borderRadius: "var(--radius-md)" }}>
                     Add Page
                 </Link>
-                <Link href="/dashboard/posts/new" className="btn btn-primary" style={{ fontSize: "0.9rem", borderRadius: "var(--radius-md)" }}>
-                    + New Post
+                <Link href="/dashboard/posts/new" className="btn btn-primary new-post-btn-mobile" style={{ fontSize: "0.9rem", borderRadius: "var(--radius-md)" }}>
+                    + <span className="add-post-text">New Post</span>
                 </Link>
 
                 <div
+                    className="profile-dropdown"
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                     style={{
                         position: "relative",
