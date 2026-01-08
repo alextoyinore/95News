@@ -66,6 +66,11 @@ body {
   overflow-x: hidden;
 }
 
+::selection {
+  background-color: var(--accent);
+  color: white;
+}
+
 h1,
 h2,
 h3,
@@ -118,7 +123,7 @@ img {
 
 @media (max-width: 640px) {
   .container {
-    padding: 0 1rem;
+    padding: 0 0.5rem;
   }
 }
 

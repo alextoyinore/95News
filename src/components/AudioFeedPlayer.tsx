@@ -191,13 +191,31 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     text-align: center;
                     border-radius: var(--radius-lg);
                     height: 100%;
+                    border: none !important;
+                    box-shadow: none !important; /* Removing shadow too if "borders" implied clean flat look, or just borders? User said "borders". I'll stick to border: none. */
+                }
+                /* ... */
+
+                .playlist {
+                    padding: 1.5rem;
+                    border-radius: var(--radius-lg);
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                    height: 100%;
+                    border: none !important;
+                }
+                .playlist h3 {
+                    margin-bottom: 1rem;
+                    padding-bottom: 1rem;
+                    /* border-bottom: 1px solid var(--border); REMOVED */
                 }
                 .album-art {
                     width: 300px;
                     height: 300px;
                     border-radius: var(--radius-lg);
                     overflow: hidden;
-                    box-shadow: var(--shadow-lg);
+                    /* box-shadow: var(--shadow-lg); REMOVED */
                     margin-bottom: 2rem;
                     background: var(--bg-tertiary);
                 }
@@ -284,19 +302,7 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     height: 48px;
                 }
 
-                .playlist {
-                    padding: 1.5rem;
-                    border-radius: var(--radius-lg);
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden;
-                    height: 100%;
-                }
-                .playlist h3 {
-                    margin-bottom: 1rem;
-                    padding-bottom: 1rem;
-                    border-bottom: 1px solid var(--border);
-                }
+
                 .playlist-tracks {
                     overflow-y: auto;
                     display: flex;
@@ -317,11 +323,15 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     background: var(--bg-tertiary);
                 }
                 .playlist-item.active {
-                    background: var(--bg-tertiary);
-                    border: 1px solid var(--accent);
+                    background: hsla(20, 90%, 55%, 0.15);
+                    /* border: 1px solid var(--accent); REMOVED border as per previous request */
                 }
                 .playlist-item.active h4 {
                     color: var(--accent);
+                }
+                .playlist-item.active p {
+                    color: var(--text-primary); /* Ensure subheading is legible */
+                    opacity: 0.8;
                 }
                 .track-thumb {
                     width: 48px;
@@ -350,7 +360,7 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                 }
                 .track-details .meta {
                     font-size: 0.8rem;
-                    color: var(--text-muted);
+                    color: var(--text-secondary);
                 }
                 
                 /* Playing Animation */
@@ -391,7 +401,7 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                 }
                 @media (max-width: 640px) {
                     .main-player {
-                        padding: 1.5rem;
+                        padding: 1rem;
                     }
                     .album-art {
                         width: 200px;

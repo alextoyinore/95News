@@ -48,14 +48,14 @@ export default async function AudioPage() {
         collection(db, "posts"),
         where("status", "==", "published"),
         orderBy("createdAt", "desc"),
-        limit(50) // Fetch reasonable batch
+        limit(100) // Fetch larger batch to find audio posts
     );
 
     const snap = await getDocs(q);
     const allPosts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
 
     // Filter for audio
-    const audioPostsRaw = allPosts.filter(p => p.audioUrl && p.audioUrl.trim().length > 0);
+    const audioPostsRaw = allPosts.filter(p => p.audioUrl && p.audioUrl.trim().length > 0).slice(0, 20);
     const audioPosts = await resolveAudioPosts(audioPostsRaw);
 
     return (

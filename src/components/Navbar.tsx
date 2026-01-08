@@ -82,6 +82,11 @@ export default function Navbar() {
                                 {cat.name}
                             </Link>
                         ))}
+                        <Link href="/play" style={{
+                            fontSize: "0.9rem", color: "var(--accent)", fontWeight: "700"
+                        }}>
+                            Play
+                        </Link>
                     </div>
                 </div>
 
@@ -174,6 +179,13 @@ export default function Navbar() {
                                 {cat.name}
                             </Link>
                         ))}
+                        <Link
+                            href="/play"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            style={{ fontSize: "1.5rem", fontWeight: "700", color: "var(--accent)" }}
+                        >
+                            Play
+                        </Link>
                         <Link
                             href="/search"
                             onClick={() => setIsMobileMenuOpen(false)}
