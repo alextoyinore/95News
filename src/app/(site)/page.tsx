@@ -143,17 +143,9 @@ export default async function Home() {
       orderBy("views", "desc"),
       limit(5)
     );
-    let popularSnap;
-    try {
-      popularSnap = await getDocs(popularQuery);
-    } catch (e) {
-      popularSnap = await getDocs(query(
-        collection(db, "posts"),
-        where("status", "==", "published"),
-        orderBy("createdAt", "desc"),
-        limit(5)
-      ));
-    }
+
+    // Strictly fetch by views. If index is missing, this will throw, asking dev to create index.
+    const popularSnap = await getDocs(popularQuery);
     popularPosts = popularSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
   }
 
