@@ -73,9 +73,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     }
 
     const breadcrumbItems = [
-        { label: "Home", href: "/" },
         { label: post.category?.name || "News", href: `/category/${post.category?.slug || "news"}` },
-        { label: post.title }
+        { label: post.title.length > 50 ? post.title.substring(0, 50) + "..." : post.title }
     ];
 
     const authorDisplayName = post.author?.displayName || post.author?.email || "95News";

@@ -114,6 +114,19 @@ export default function Navbar() {
                         )}
                     </div>
 
+                    {/* Mobile Search Icon */}
+                    <Link
+                        href="/search"
+                        style={{
+                            display: "none",
+                            color: "var(--text-primary)",
+                            padding: "0.5rem"
+                        }}
+                        className="mobile-only-flex"
+                    >
+                        <Search size={24} />
+                    </Link>
+
                     {/* Mobile Menu Toggle */}
                     <button
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -161,6 +174,13 @@ export default function Navbar() {
                                 {cat.name}
                             </Link>
                         ))}
+                        <Link
+                            href="/search"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            style={{ fontSize: "1.5rem", fontWeight: "700", display: "flex", alignItems: "center", gap: "0.5rem" }}
+                        >
+                            <Search size={24} /> Search
+                        </Link>
                     </div>
 
                     <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "1.5rem", paddingTop: "2rem", borderTop: "1px solid var(--border)" }}>
