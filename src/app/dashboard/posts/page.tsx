@@ -6,7 +6,7 @@ import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter,
 import { db } from "@/lib/firebase";
 import { Post } from "@/types/firestore";
 import DashboardPagination from "@/components/DashboardPagination";
-import { Search, Star, Zap } from "lucide-react";
+import { Search, Star, Zap, Pencil, Trash2 } from "lucide-react";
 
 export default function PostsPage() {
     const [posts, setPosts] = useState<Post[]>([]);
@@ -422,8 +422,43 @@ export default function PostsPage() {
                                         </td>
                                         <td style={{ padding: "1.2rem 1.5rem" }}>
                                             <div style={{ display: "flex", gap: "0.8rem" }}>
-                                                <Link href={`/dashboard/posts/${post.id}`} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", textDecoration: "none" }} title="Edit">✏️</Link>
-                                                <button onClick={() => handleDelete(post.id)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem" }} title="Delete">🗑️</button>
+                                                <Link
+                                                    href={`/dashboard/posts/${post.id}`}
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        width: "32px",
+                                                        height: "32px",
+                                                        borderRadius: "6px",
+                                                        color: "var(--text-secondary)",
+                                                        transition: "all 0.2s"
+                                                    }}
+                                                    className="hover-bg"
+                                                    title="Edit"
+                                                >
+                                                    <Pencil size={18} />
+                                                </Link>
+                                                <button
+                                                    onClick={() => handleDelete(post.id)}
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        width: "32px",
+                                                        height: "32px",
+                                                        borderRadius: "6px",
+                                                        background: "none",
+                                                        border: "none",
+                                                        cursor: "pointer",
+                                                        color: "var(--text-secondary)",
+                                                        transition: "all 0.2s"
+                                                    }}
+                                                    className="hover-bg"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
