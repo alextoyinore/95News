@@ -189,7 +189,7 @@ export default async function Home() {
           {sportsPosts.length > 0 && <CategoryHighlight title="Sports" posts={sportsPosts} />}
         </main>
 
-        <aside className="home-sidebar" style={{ position: "sticky", top: "6rem", alignSelf: "flex-start" }}>
+        <aside className="home-sidebar">
           {getWidgetActive('w1') && <SocialSidebar />}
 
           {getWidgetActive('w3') && popularPosts.length > 0 && (
@@ -243,11 +243,17 @@ export default async function Home() {
         .home-grid {
           grid-template-columns: 3fr 1fr;
         }
+        .home-sidebar {
+          position: sticky;
+          top: 6rem;
+          align-self: start;
+        }
         @media (max-width: 1024px) {
           .home-grid {
             grid-template-columns: 1fr;
           }
           .home-sidebar {
+            position: static;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;

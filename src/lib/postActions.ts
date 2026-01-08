@@ -4,16 +4,28 @@ import { db } from './firebase';
 export async function incrementPostViews(postId: string, ip?: string) {
     if (!ip) return;
     try {
-        const viewRef = doc(db, 'posts', postId, 'views', ip.replace(/\./g, '_')); // Replace dots for safety in doc ID if needed, but Firebase allows them. Let's use IP as ID to avoid duplicates from same IP.
+        // Simple hash to anonymize IP
+        const encoder = new TextEncoder();
+        const data = encoder.encode(ip);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const ipHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        // Create a daily unique ID: hash + date
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const viewId = `${ipHash}_${today}`;
+
+        const viewRef = doc(db, 'posts', postId, 'views', viewId);
         const viewDoc = await getDoc(viewRef);
 
         if (!viewDoc.exists()) {
             await setDoc(viewRef, {
-                ip,
+                hashedIp: ipHash,
+                date: today,
                 timestamp: new Date().toISOString()
             });
 
-            // Optionally still increment a counter on the root doc for faster reads
+            // Increment counter on main post doc
             const postRef = doc(db, 'posts', postId);
             await updateDoc(postRef, {
                 views: increment(1)

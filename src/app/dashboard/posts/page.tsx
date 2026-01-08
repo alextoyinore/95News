@@ -78,15 +78,25 @@ export default function PostsPage() {
 
     const fetchTotalCount = async () => {
         try {
-            if (statusFilter !== 'all' || searchDebounce) {
-                // Hide pagination count for now in filtered view
-                setTotalItems(0);
-                return;
+            const constraints: QueryConstraint[] = [];
+
+            if (searchDebounce) {
+                const slugStart = searchDebounce.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+                constraints.push(where("slug", ">=", slugStart));
+                constraints.push(where("slug", "<=", slugStart + '\uf8ff'));
+            }
+
+            if (statusFilter !== 'all') {
+                constraints.push(where("status", "==", statusFilter));
             }
 
             const coll = collection(db, "posts");
-            const snapshot = await getCountFromServer(coll);
+            const q = query(coll, ...constraints);
+            const snapshot = await getCountFromServer(q);
             setTotalItems(snapshot.data().count);
+            return;
+
+
         } catch (error) {
             console.error("Error fetching count:", error);
         }

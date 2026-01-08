@@ -17,9 +17,9 @@ export default function DashboardNavbar() {
     useEffect(() => {
         const fetchTodayCount = async () => {
             try {
-                // Get start of today in ISO format (YYYY-MM-DDT00:00:00.000Z)
+                // Get start of today
                 const now = new Date();
-                const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+                const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
                 const q = query(
                     collection(db, "posts"),
