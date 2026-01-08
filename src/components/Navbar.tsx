@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
-import { Search, LogIn, LayoutDashboard, Menu, X } from "lucide-react";
+import { Search, LogIn, LayoutDashboard, Menu, X, Play } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";

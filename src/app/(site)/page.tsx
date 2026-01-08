@@ -111,7 +111,7 @@ export default async function Home() {
       where("tagIds", "array-contains", featuredTagId),
       where("status", "==", "published"),
       orderBy("createdAt", "desc"),
-      limit(3)
+      limit(5)
     );
 
     const heroSnap = await getDocs(heroQuery);
@@ -178,7 +178,7 @@ export default async function Home() {
           )}
 
           <CategoryHighlight title="World" posts={worldPosts} />
-          {sportsPosts.length > 0 && <CategoryHighlight title="Sports" posts={sportsPosts} />}
+
         </main>
 
         <aside className="home-sidebar">
@@ -213,21 +213,29 @@ export default async function Home() {
             <p style={{ fontSize: "0.9rem", opacity: 0.9, marginBottom: "1.5rem" }}>
               Join 95News Premium for exclusive industry reports and deep-dives.
             </p>
-            <button className="btn" style={{ backgroundColor: "white", color: "black", width: "100%", borderRadius: "var(--radius-sm)" }}>
-              Sign Up
-            </button>
+            <Link href="/subscription">
+              <button className="btn" style={{ backgroundColor: "white", color: "black", width: "100%", borderRadius: "var(--radius-sm)" }}>
+                Sign Up
+              </button>
+            </Link>
           </div>
         </aside>
       </div>
 
       {uniqueEditorial.length > 0 && (
         <div style={{ margin: "4rem 0" }}>
-          <PostGrid title="Editorial & Opinion" posts={uniqueEditorial} columns={4} />
+          <PostGrid title="Editorial & Opinion" posts={uniqueEditorial} columns={4} viewAllLink="/category/opinion" />
         </div>
       )}
 
       {lifestylePosts.length > 0 && (
-        <PostGrid title="Lifestyle & Culture" posts={lifestylePosts} columns={4} />
+        <PostGrid title="Lifestyle & Culture" posts={lifestylePosts} columns={4} viewAllLink="/category/lifestyle" />
+      )}
+
+      {sportsPosts.length > 0 && (
+        <div style={{ margin: "4rem 0" }}>
+          <PostGrid title="Sports" posts={sportsPosts} columns={4} viewAllLink="/category/sports" />
+        </div>
       )}
 
       <style dangerouslySetInnerHTML={{

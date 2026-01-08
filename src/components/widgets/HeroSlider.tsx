@@ -29,7 +29,7 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
             borderRadius: "var(--radius-lg)",
         }}>
             {/* Background Image with Zoom Effect */}
-            <div style={{
+            <div key={currentPost.id} style={{
                 position: "absolute",
                 top: 0,
                 left: 0,
@@ -40,7 +40,8 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
                 backgroundPosition: "center",
                 transition: "transform 5s ease, opacity 0.8s ease",
                 transform: "scale(1.05)",
-                zIndex: 0
+                zIndex: 0,
+                animation: "zoomIn 5s ease forwards"
             }} />
 
             {/* Overlay Gradient */}
@@ -102,7 +103,7 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
 
                     <div style={{ display: "flex", alignItems: "center", gap: "1rem", fontSize: "0.85rem" }}>
                         <div style={{ width: "36px", height: "36px", borderRadius: "50%", backgroundColor: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "700" }}>
-                            {currentPost.author[0]}
+                            {currentPost.author ? currentPost.author[0] : 'A'}
                         </div>
                         <div>
                             <div style={{ fontWeight: "600" }}>{currentPost.author}</div>
@@ -150,12 +151,20 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
                     -webkit-line-clamp: 3;
                     -webkit-box-orient: vertical;
                     overflow: hidden;
+                    transition: color 0.2s ease;
+                }
+                .hero-title:hover {
+                    color: var(--accent);
                 }
                 .hero-excerpt {
                     display: -webkit-box;
                     -webkit-line-clamp: 3;
                     -webkit-box-orient: vertical;
                     overflow: hidden;
+                }
+                @keyframes zoomIn {
+                    from { transform: scale(1); }
+                    to { transform: scale(1.05); }
                 }
                 @media (max-width: 768px) {
                     .hero-slider {

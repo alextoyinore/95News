@@ -2,13 +2,16 @@
 
 import PostCard from "../PostCard";
 
+import Link from "next/link";
+
 interface PostGridProps {
     title: string;
     posts: any[];
     columns?: number;
+    viewAllLink?: string;
 }
 
-export default function PostGrid({ title, posts, columns = 3 }: PostGridProps) {
+export default function PostGrid({ title, posts, columns = 3, viewAllLink }: PostGridProps) {
     return (
         <section style={{ marginBottom: "4rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "2rem", borderBottom: "1px solid var(--border)" }}>
@@ -21,6 +24,11 @@ export default function PostGrid({ title, posts, columns = 3 }: PostGridProps) {
                 }}>
                     {title}
                 </h3>
+                {viewAllLink && (
+                    <Link href={viewAllLink} style={{ color: "var(--accent)", fontSize: "0.9rem", fontWeight: "600" }}>
+                        View All →
+                    </Link>
+                )}
             </div>
 
             <div className={`grid-layout columns-${columns}`} style={{
