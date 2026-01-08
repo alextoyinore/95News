@@ -199,7 +199,7 @@ export default function Navbar() {
                                 {isStaff && (
                                     <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} style={{ fontSize: "1.2rem", fontWeight: "600", color: "var(--accent)" }}>Dashboard</Link>
                                 )}
-                                <button className="btn btn-primary" style={{ width: "100%" }}>Subscribe</button>
+                                <button className="btn btn-primary" style={{ width: "100%", padding: "1rem" }}>Subscribe</button>
                             </div>
                         )}
                     </div>
