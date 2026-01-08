@@ -6,9 +6,10 @@ import PostCard from "../PostCard";
 interface CategoryHighlightProps {
     title: string;
     posts: any[];
+    viewAllLink?: string;
 }
 
-export default function CategoryHighlight({ title, posts }: CategoryHighlightProps) {
+export default function CategoryHighlight({ title, posts, viewAllLink }: CategoryHighlightProps) {
     if (!posts || posts.length === 0) return null;
 
     const mainPost = posts[0];
@@ -26,7 +27,7 @@ export default function CategoryHighlight({ title, posts }: CategoryHighlightPro
                 }}>
                     {title}
                 </h3>
-                <Link href={`/category/${title.toLowerCase()}`} style={{ color: "var(--accent)", fontSize: "0.9rem", fontWeight: "600" }}>
+                <Link href={viewAllLink || `/category/${title.toLowerCase()}`} style={{ color: "var(--accent)", fontSize: "0.9rem", fontWeight: "600" }}>
                     View All →
                 </Link>
             </div>

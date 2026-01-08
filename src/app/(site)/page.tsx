@@ -159,7 +159,7 @@ export default async function Home() {
         marginTop: heroPosts.length === 0 ? "2rem" : "0"
       }}>
         <main>
-          <CategoryHighlight title="News" posts={latestNewsPosts} />
+          <CategoryHighlight title="News" posts={latestNewsPosts} viewAllLink="/latest" />
           <div style={{ margin: "3rem 0" }}>
             <CategoryHighlight title="Technology" posts={techPosts} />
           </div>
