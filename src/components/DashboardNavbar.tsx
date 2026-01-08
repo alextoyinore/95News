@@ -183,6 +183,13 @@ export default function DashboardNavbar({ onToggleSidebar }: { onToggleSidebar?:
                                     <User size={16} /> My Profile
                                 </Link>
 
+                                <div className="mobile-theme-item">
+                                    <span>Theme</span>
+                                    <div style={{ transform: "scale(0.8)", transformOrigin: "right center" }}>
+                                        <ThemeToggle />
+                                    </div>
+                                </div>
+
                                 <button
                                     onClick={() => signOut()}
                                     style={{

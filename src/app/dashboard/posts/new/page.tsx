@@ -242,9 +242,9 @@ export default function NewPostPage() {
 
     return (
         <div style={{ maxWidth: "1400px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div className="post-editor-header">
                 <h1 style={{ fontSize: "2rem", fontWeight: "800" }}>Write New Story</h1>
-                <div style={{ display: "flex", gap: "1rem" }}>
+                <div className="post-editor-actions">
                     <button
                         className="btn"
                         onClick={() => handleSave('draft')}
@@ -263,10 +263,10 @@ export default function NewPostPage() {
                 </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: "2rem" }}>
+            <div className="post-editor-layout">
                 {/* Editor Area */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-                    <div className="glass" style={{ padding: "2rem", borderRadius: "var(--radius-lg)" }}>
+                    <div style={{ borderRadius: "var(--radius-lg)" }}>
                         <textarea
                             placeholder="Title"
                             value={title}

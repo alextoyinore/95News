@@ -65,14 +65,14 @@ export default function NewPagePage() {
 
     return (
         <div style={{ maxWidth: "1200px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <div className="post-editor-header">
                 <div>
                     <Link href="/dashboard/pages" style={{ fontSize: "0.9rem", color: "var(--accent)", textDecoration: "none", display: "block", marginBottom: "0.5rem" }}>
                         ← Back to Pages
                     </Link>
                     <h1>Create New Page</h1>
                 </div>
-                <div style={{ display: "flex", gap: "1rem" }}>
+                <div className="post-editor-actions">
                     <button
                         className="btn"
                         onClick={() => handleSave('draft')}
@@ -91,10 +91,10 @@ export default function NewPagePage() {
                 </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: "2rem" }}>
+            <div className="post-editor-layout">
                 {/* Editor Area */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-                    <div className="glass" style={{ padding: "3rem", borderRadius: "var(--radius-lg)" }}>
+                    <div style={{ borderRadius: "var(--radius-lg)" }}>
                         <textarea
                             placeholder="Page Title..."
                             value={title}
@@ -120,7 +120,7 @@ export default function NewPagePage() {
 
                         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "2rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
                             <span>Slug:</span>
-                            <div style={{ display: "flex", alignItems: "center", backgroundColor: "var(--bg-tertiary)", padding: "0.2rem 0.5rem", borderRadius: "var(--radius-sm)" }}>
+                            <div style={{ display: "flex", alignItems: "center", backgroundColor: "var(--bg-tertiary)", padding: "0.2rem 0.5rem", borderRadius: "var(--radius-sm)", flex: 1 }}>
                                 <span>/</span>
                                 <input
                                     type="text"

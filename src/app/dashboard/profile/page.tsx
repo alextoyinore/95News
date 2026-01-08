@@ -49,7 +49,7 @@ export default function ProfilePage() {
         <div style={{ maxWidth: "800px" }}>
             <h1 style={{ marginBottom: "2rem" }}>Your Profile</h1>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "3rem" }}>
+            <div className="profile-layout">
                 {/* Profile Sidebar */}
                 <div>
                     <div className="glass" style={{ padding: "2rem", borderRadius: "var(--radius-lg)", textAlign: "center" }}>

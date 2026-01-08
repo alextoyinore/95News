@@ -615,3 +615,87 @@ input:checked+.toggle-slider:before {
 .activity-mobile {
   display: none;
 }
+
+/* Profile Page Layout */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 3rem;
+}
+
+@media (max-width: 768px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Post Editor Page Layout */
+.post-editor-layout {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 2rem;
+}
+
+.post-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.post-editor-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.post-editor-actions .btn {
+  padding: 14px 28px;
+  font-size: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .post-editor-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .post-editor-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .post-editor-actions {
+    flex-direction: column;
+  }
+
+  .post-editor-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Mobile Theme Toggle Visibility */
+@media (max-width: 768px) {
+  .theme-toggle-wrapper {
+    display: none !important;
+  }
+}
+
+.mobile-theme-item {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-theme-item {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.8rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+}
