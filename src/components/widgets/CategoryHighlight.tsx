@@ -33,8 +33,8 @@ export default function CategoryHighlight({ title, posts, viewAllLink }: Categor
             </div>
 
             <div className="highlight-grid" style={{ display: "grid", gap: "2.5rem" }}>
-                <div style={{ height: "100%" }}>
-                    <PostCard post={mainPost} imageHeight="350px" />
+                <div style={{ height: "100%" }} className="main-post-container">
+                    <PostCard post={mainPost} imageHeight="var(--highlight-img-height, 350px)" />
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                     {sidePosts.map((post, idx) => (
@@ -51,10 +51,12 @@ export default function CategoryHighlight({ title, posts, viewAllLink }: Categor
             <style jsx>{`
                 .highlight-grid {
                     grid-template-columns: 55fr 45fr;
+                    --highlight-img-height: 350px;
                 }
                 @media (max-width: 768px) {
                     .highlight-grid {
                         grid-template-columns: 1fr;
+                        --highlight-img-height: 297px; /* ~15% reduction from 350px */
                     }
                 }
             `}</style>

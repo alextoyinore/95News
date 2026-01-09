@@ -13,20 +13,32 @@ export default function AuthorSpotlight() {
     useEffect(() => {
         const fetchAuthor = async () => {
             try {
-                // Try to find an editor or superuser
+                // Fetch potential editors/superusers
                 const q = query(
                     collection(db, "users"),
-                    where("role", "in", ["editor", "superuser"]),
-                    limit(1)
+                    where("role", "in", ["editor", "superuser"])
                 );
                 const snap = await getDocs(q);
-                if (!snap.empty) {
-                    setAuthor({ id: snap.docs[0].id, ...snap.docs[0].data() } as User);
+
+                let eligibleAuthors = snap.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() } as User))
+                    .filter(u => u.bio && u.photoURL); // Must have bio AND image
+
+                if (eligibleAuthors.length > 0) {
+                    // Selection based on current day of the year for a "daily rotation"
+                    const now = new Date();
+                    const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+                    const selectedIndex = dayOfYear % eligibleAuthors.length;
+                    setAuthor(eligibleAuthors[selectedIndex]);
                 } else {
-                    // Fallback to any user if no editors found
-                    const fallbackSnap = await getDocs(query(collection(db, "users"), limit(1)));
-                    if (!fallbackSnap.empty) {
-                        setAuthor({ id: fallbackSnap.docs[0].id, ...fallbackSnap.docs[0].data() } as User);
+                    // Fallback to any user with bio and image if no editors qualify
+                    const fallbackSnap = await getDocs(collection(db, "users"));
+                    const anyEligible = fallbackSnap.docs
+                        .map(doc => ({ id: doc.id, ...doc.data() } as User))
+                        .filter(u => u.bio && u.photoURL);
+
+                    if (anyEligible.length > 0) {
+                        setAuthor(anyEligible[0]);
                     }
                 }
             } catch (error) {
