@@ -310,9 +310,9 @@ export default function EditPostPage() {
 
     return (
         <div style={{ maxWidth: "1400px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
-                <h1>Edit Post</h1>
-                <div style={{ display: "flex", gap: "1rem" }}>
+            <div className="post-editor-header">
+                <h1 style={{ fontSize: "2rem", fontWeight: "800" }}>Edit Story</h1>
+                <div className="post-editor-actions">
                     <button
                         className="btn"
                         style={{ border: "1px solid var(--border)" }}
@@ -331,7 +331,7 @@ export default function EditPostPage() {
                 </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: "2rem" }}>
+            <div className="post-editor-layout">
                 {/* Editor Area */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
                     <div className="glass" style={{ padding: "2rem", borderRadius: "var(--radius-lg)" }}>
@@ -363,7 +363,7 @@ export default function EditPostPage() {
                             rows={1}
                             style={{
                                 width: "100%",
-                                fontSize: "2.5rem",
+                                fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
                                 fontWeight: "800",
                                 border: "none",
                                 outline: "none",

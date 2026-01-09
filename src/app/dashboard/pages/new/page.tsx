@@ -92,15 +92,15 @@ export default function NewPagePage() {
     };
 
     return (
-        <div style={{ maxWidth: "1200px" }}>
-            <div className="post-editor-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+        <div style={{ maxWidth: "1400px" }}>
+            <div className="post-editor-header">
                 <div>
                     <Link href="/dashboard/pages" style={{ fontSize: "0.9rem", color: "var(--accent)", textDecoration: "none", display: "block", marginBottom: "0.5rem" }}>
                         ← Back to Pages
                     </Link>
                     <h1>Create New Page</h1>
                 </div>
-                <div className="post-editor-actions" style={{ display: "flex", gap: "1rem" }}>
+                <div className="post-editor-actions">
                     <button
                         className="btn"
                         onClick={() => handleSave('draft')}
@@ -119,9 +119,9 @@ export default function NewPagePage() {
                 </div>
             </div>
 
-            <div className="post-editor-layout" style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: "2rem" }}>
+            <div className="post-editor-layout">
                 {/* Editor Area */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "2rem", minWidth: 0 }}>
                     <div className="glass" style={{ padding: "2rem", borderRadius: "var(--radius-lg)" }}>
                         <textarea
                             placeholder="Page Title..."
@@ -134,7 +134,7 @@ export default function NewPagePage() {
                             rows={1}
                             style={{
                                 width: "100%",
-                                fontSize: "2.5rem",
+                                fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
                                 fontWeight: "800",
                                 border: "none",
                                 outline: "none",
@@ -166,7 +166,7 @@ export default function NewPagePage() {
                             </div>
                         </div>
 
-                        <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", borderBottom: "1px solid var(--border)" }}>
+                        <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", borderBottom: "1px solid var(--border)", flexWrap: "wrap" }}>
                             <button
                                 onClick={() => setLayoutType('standard')}
                                 style={{
@@ -226,7 +226,7 @@ export default function NewPagePage() {
                                             </div>
 
                                             {(block.type === 'category-highlight' || block.type === 'post-grid') && (
-                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 100px", gap: "1rem" }}>
+                                                <div className="block-config-row">
                                                     <div>
                                                         <label style={{ fontSize: "0.75rem", display: "block", marginBottom: "0.3rem" }}>Title</label>
                                                         <input
@@ -258,7 +258,7 @@ export default function NewPagePage() {
                                             )}
 
                                             {block.type === 'hero-slider' && (
-                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 100px", gap: "1rem" }}>
+                                                <div className="block-config-row">
                                                     <div>
                                                         <label style={{ fontSize: "0.75rem", display: "block", marginBottom: "0.3rem" }}>Category Slug</label>
                                                         <input

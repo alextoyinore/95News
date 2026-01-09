@@ -278,7 +278,7 @@ export default function NewPostPage() {
                             rows={1}
                             style={{
                                 width: "100%",
-                                fontSize: "2.5rem",
+                                fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
                                 fontWeight: "800",
                                 border: "none",
                                 outline: "none",

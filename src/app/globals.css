@@ -704,3 +704,17 @@ input:checked+.toggle-slider:before {
     font-weight: 600;
   }
 }
+
+/* Magazine Block Config Grid */
+.block-config-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 100px;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .block-config-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
