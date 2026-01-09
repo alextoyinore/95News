@@ -1,13 +1,13 @@
 export default function SubscriptionPage() {
     return (
-        <div style={{
-            minHeight: "60vh",
+        <div className="container site-content" style={{
+            minHeight: "70vh",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             textAlign: "center",
-            padding: "2rem"
+            paddingBottom: "4rem"
         }}>
             <h1 style={{
                 fontSize: "clamp(2rem, 5vw, 4rem)",

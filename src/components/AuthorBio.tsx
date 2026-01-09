@@ -38,15 +38,13 @@ export default function AuthorBio({ author }: AuthorBioProps) {
                 <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.6" }}>{author.bio}</p>
                 <div style={{ marginTop: "1rem" }}>
                     {author.id ? (
-                        <Link href={`/author/${author.id}`} style={{
+                        <Link href={`/author/${author.id.trim()}`} style={{
                             color: "var(--accent)",
                             fontSize: "0.85rem",
                             fontWeight: "600",
                             cursor: "pointer",
                             textDecoration: "none"
-                        }}>
-                            View all articles by {author.name.split(' ')[0]} →
-                        </Link>
+                        }}>View all articles by {author.name.split(' ')[0]} →</Link>
                     ) : (
                         <button style={{
                             background: "none",
