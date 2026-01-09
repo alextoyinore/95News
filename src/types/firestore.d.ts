@@ -7,6 +7,12 @@ export interface User {
     role: 'superuser' | 'editor' | 'writer' | 'contributor' | 'subscriber';
 }
 
+export interface MagazineBlock {
+    id: string;
+    type: 'category-highlight' | 'post-grid' | 'hero-slider' | 'newsletter' | 'trending-tags' | 'author-spotlight' | 'custom-html' | 'social-sidebar';
+    config?: any;
+}
+
 export interface Page {
     id: string;
     title: string;
@@ -21,6 +27,8 @@ export interface Page {
     createdAt: string; // ISO date string
     updatedAt?: string; // ISO date string
     builderEnabled?: boolean;
+    layoutType?: 'standard' | 'magazine';
+    blocks?: MagazineBlock[];
     showTitle?: boolean;
     disabledWidgetAreas?: string[];
 }

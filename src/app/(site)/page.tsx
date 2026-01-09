@@ -1,5 +1,9 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
+import { getLayoutSettings } from "@/lib/layoutActions";
+import { getPageById, fetchSectionPosts, fetchLatestPosts, resolvePostsData } from "@/lib/cmsActions";
+import MagazinePageRenderer from "@/components/MagazinePageRenderer";
+import StandardPageRenderer from "@/components/StandardPageRenderer";
 import HeroSlider from "@/components/widgets/HeroSlider";
 import CategoryHighlight from "@/components/widgets/CategoryHighlight";
 import PostGrid from "@/components/widgets/PostGrid";
@@ -9,92 +13,27 @@ import TrendingTags from "@/components/widgets/TrendingTags";
 import AuthorSpotlight from "@/components/widgets/AuthorSpotlight";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, limit, orderBy } from "firebase/firestore";
-import { Post, Category, User } from "@/types/firestore";
-import { formatDate, getAuthorSlug } from "@/lib/utils";
-import { getLayoutSettings } from "@/lib/layoutActions";
-
-async function getCategoryBySlug(slugs: string | string[]) {
-  const slugList = Array.isArray(slugs) ? slugs : [slugs];
-  for (const slug of slugList) {
-    const q = query(collection(db, "categories"), where("slug", "==", slug), limit(1));
-    const snap = await getDocs(q);
-    if (!snap.empty) {
-      return { id: snap.docs[0].id, ...snap.docs[0].data() } as Category;
-    }
-  }
-  return null;
-}
-
-async function resolvePostsData(postDocs: Post[]) {
-  if (postDocs.length === 0) return [];
-
-  const authorIds = Array.from(new Set(postDocs.map(p => p.authorId)));
-  const authors: { [key: string]: { name: string, slug: string } } = {};
-
-  for (const id of authorIds) {
-    const userSnap = await getDocs(query(collection(db, "users"), where("id", "==", id), limit(1)));
-    if (!userSnap.empty) {
-      const userData = userSnap.docs[0].data() as User;
-      authors[id] = {
-        name: userData.displayName || userData.email || "95News",
-        slug: getAuthorSlug(userData)
-      };
-    }
-  }
-
-  const catSnap = await getDocs(collection(db, "categories"));
-  const categoriesMap: { [key: string]: { name: string, slug: string } } = {};
-  catSnap.forEach(doc => {
-    const data = doc.data() as Category;
-    categoriesMap[doc.id] = { name: data.name, slug: data.slug };
-  });
-
-  return postDocs.map(post => ({
-    id: post.id,
-    slug: post.slug,
-    title: post.title,
-    excerpt: post.excerpt || "",
-    category: categoriesMap[post.categoryIds?.[0] || ""]?.name || "News",
-    categorySlug: categoriesMap[post.categoryIds?.[0] || ""]?.slug || "news",
-    author: authors[post.authorId]?.name || "95News",
-    authorId: post.authorId,
-    authorSlug: authors[post.authorId]?.slug || "95news-author",
-    date: formatDate(post.createdAt),
-    image: post.featuredImageUrl
-  }));
-}
-
-async function fetchSectionPosts(slugs: string | string[], count: number = 4) {
-  const cat = await getCategoryBySlug(slugs);
-  if (!cat) return [];
-
-  const q = query(
-    collection(db, "posts"),
-    where("categoryIds", "array-contains", cat.id),
-    where("status", "==", "published"),
-    orderBy("createdAt", "desc"),
-    limit(count)
-  );
-  const snap = await getDocs(q);
-  return await resolvePostsData(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
-}
-
-async function fetchLatestPosts(count: number = 4) {
-  const q = query(
-    collection(db, "posts"),
-    where("status", "==", "published"),
-    orderBy("createdAt", "desc"),
-    limit(count)
-  );
-  const snap = await getDocs(q);
-  return await resolvePostsData(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
-}
+import { Post } from "@/types/firestore";
+import { formatDate } from "@/lib/utils";
 
 export default async function Home() {
-  // 0. Fetch Layout Settings
   const layoutSettings = await getLayoutSettings();
+
+  // 1. Check if a custom homepage is designated
+  if (layoutSettings?.homePageId) {
+    const customHomePage = await getPageById(layoutSettings.homePageId);
+    if (customHomePage) {
+      if (customHomePage.layoutType === 'magazine') {
+        return <MagazinePageRenderer page={customHomePage} layoutSettings={layoutSettings} />;
+      }
+      return <StandardPageRenderer page={customHomePage} />;
+    }
+  }
+
+  // FALLBACK: Default Hardcoded Magazine Layout (if no homePageId is set or found)
+
   const getWidgetActive = (id: string) => {
-    if (!layoutSettings) return true; // Default to active if no settings
+    if (!layoutSettings) return true;
     return layoutSettings.widgets.find(w => w.id === id)?.active ?? true;
   };
 
@@ -148,7 +87,6 @@ export default async function Home() {
         limit(5)
       );
 
-      // Note: This requires a composite index in Firestore (status: asc, views: desc)
       const popularSnap = await getDocs(popularQuery);
       const rawPopular = popularSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
 
@@ -159,7 +97,6 @@ export default async function Home() {
       }
     } catch (error) {
       console.error("Error fetching popular posts (likely missing index):", error);
-      // Fallback: If popular fails (usually due to missing index), show latest as fallback
       popularPosts = latestNewsPosts.slice(0, 5);
     }
   }

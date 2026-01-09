@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { collection, getDocs, query, where, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Post, User, Category } from "@/types/firestore";
+import { Post, User, Category, Page } from "@/types/firestore";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import AuthorBio from "@/components/AuthorBio";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
@@ -16,9 +16,13 @@ import PostMetadata from "@/components/PostMetadata";
 import CommentSection from "@/components/CommentSection";
 import RelatedPosts from "@/components/RelatedPosts";
 import { incrementPostViews } from "@/lib/postActions";
+import { getPageBySlug } from "@/lib/cmsActions";
+import MagazinePageRenderer from "@/components/MagazinePageRenderer";
+import StandardPageRenderer from "@/components/StandardPageRenderer";
+import { getLayoutSettings } from "@/lib/layoutActions";
 
 interface ArticlePageProps {
-    params: { slug: string };
+    params: Promise<{ slug: string }>;
 }
 
 async function getPostBySlug(slug: string) {
@@ -66,10 +70,25 @@ async function getPostBySlug(slug: string) {
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
     const { slug } = await params;
+
+    // 1. Try to fetch as a Post
     const post = await getPostBySlug(slug);
 
     if (!post) {
-        notFound();
+        // 2. Try to fetch as a Page
+        const page = await getPageBySlug(slug);
+
+        if (!page) {
+            notFound();
+        }
+
+        const layoutSettings = await getLayoutSettings();
+
+        if (page.layoutType === 'magazine') {
+            return <MagazinePageRenderer page={page} layoutSettings={layoutSettings} />;
+        }
+
+        return <StandardPageRenderer page={page} />;
     }
 
     const breadcrumbItems = [

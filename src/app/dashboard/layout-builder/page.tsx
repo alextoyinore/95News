@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getLayoutSettings, LayoutSettings } from '@/lib/layoutActions';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs } from 'firebase/firestore';
 
 const initialTemplates = [
     { id: 'magazine', name: "Magazine Grid", icon: "📰", description: "Classic news layout with a large hero slider and categorized sections." },
@@ -21,6 +21,8 @@ const initialWidgets = [
 
 export default function LayoutBuilderPage() {
     const [activeTemplateId, setActiveTemplateId] = useState('magazine');
+    const [homePageId, setHomePageId] = useState<string | null>(null);
+    const [pages, setPages] = useState<any[]>([]);
     const [widgets, setWidgets] = useState(initialWidgets);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -29,9 +31,14 @@ export default function LayoutBuilderPage() {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
+                // Fetch Pages for selector
+                const pagesSnap = await getDocs(query(collection(db, "pages"), where("status", "==", "published")));
+                setPages(pagesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
                 const settings = await getLayoutSettings();
                 if (settings) {
                     setActiveTemplateId(settings.activeTemplateId || 'magazine');
+                    setHomePageId(settings.homePageId || null);
                     if (settings.widgets && settings.widgets.length > 0) {
                         setWidgets(settings.widgets);
                     }
@@ -60,6 +67,7 @@ export default function LayoutBuilderPage() {
             const docRef = doc(db, "site_settings", "home_layout");
             await setDoc(docRef, {
                 activeTemplateId,
+                homePageId: homePageId || null,
                 widgets,
                 lastUpdated: serverTimestamp()
             }, { merge: true });
@@ -67,6 +75,7 @@ export default function LayoutBuilderPage() {
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
         } catch (error) {
+            console.error("Save error:", error);
             alert("Failed to save layout settings.");
         } finally {
             setIsSaving(false);
@@ -170,6 +179,35 @@ export default function LayoutBuilderPage() {
                 </div>
 
                 <aside style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+                    {/* Homepage Designation */}
+                    <div className="glass" style={{ padding: "1.5rem", borderRadius: "var(--radius-md)" }}>
+                        <h3 style={{ fontSize: "1.1rem", marginBottom: "1.2rem" }}>Site Homepage</h3>
+                        <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "1rem" }}>
+                            Select which page should serve as the site's primary landing page.
+                        </p>
+                        <select
+                            value={homePageId || ""}
+                            onChange={(e) => setHomePageId(e.target.value || null)}
+                            style={{
+                                width: "100%",
+                                padding: "0.6rem",
+                                borderRadius: "var(--radius-sm)",
+                                border: "1px solid var(--border)",
+                                backgroundColor: "var(--bg-primary)",
+                                color: "var(--text-primary)",
+                                marginBottom: "1rem"
+                            }}
+                        >
+                            <option value="">Default (Hardcoded Layout)</option>
+                            {pages.map(page => (
+                                <option key={page.id} value={page.id}>{page.title}</option>
+                            ))}
+                        </select>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                            You can build any page as a "Magazine" page and set it as home here.
+                        </div>
+                    </div>
+
                     {/* Widget Manager */}
                     <div className="glass" style={{ padding: "1.5rem", borderRadius: "var(--radius-md)" }}>
                         <h3 style={{ fontSize: "1.1rem", marginBottom: "1.2rem" }}>Active Widgets</h3>

@@ -16,13 +16,14 @@ export default function NewPagePage() {
     const [title, setTitle] = useState('');
     const [slug, setSlug] = useState('');
     const [content, setContent] = useState<any>(null);
+    const [layoutType, setLayoutType] = useState<'standard' | 'magazine'>('standard');
+    const [blocks, setBlocks] = useState<any[]>([]);
     const [status, setStatus] = useState<'draft' | 'published'>('draft');
     const [saving, setSaving] = useState(false);
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const newTitle = e.target.value;
         setTitle(newTitle);
-        // Basic slug generation: lower case, replace spaces/specials with dashes
         if (!slug || slug === title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')) {
             setSlug(newTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''));
         }
@@ -30,6 +31,31 @@ export default function NewPagePage() {
 
     const handleContentChange = (newContent: any) => {
         setContent(newContent);
+    };
+
+    const addBlock = (type: string) => {
+        const newBlock = {
+            id: Math.random().toString(36).substr(2, 9),
+            type,
+            config: type === 'category-highlight' || type === 'post-grid' ? { title: '', categorySlug: '', limit: 4 } : {}
+        };
+        setBlocks([...blocks, newBlock]);
+    };
+
+    const removeBlock = (id: string) => {
+        setBlocks(blocks.filter(b => b.id !== id));
+    };
+
+    const moveBlock = (index: number, direction: 'up' | 'down') => {
+        const newBlocks = [...blocks];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= newBlocks.length) return;
+        [newBlocks[index], newBlocks[targetIndex]] = [newBlocks[targetIndex], newBlocks[index]];
+        setBlocks(newBlocks);
+    };
+
+    const updateBlockConfig = (id: string, config: any) => {
+        setBlocks(blocks.map(b => b.id === id ? { ...b, config: { ...b.config, ...config } } : b));
     };
 
     const handleSave = async (selectedStatus: 'draft' | 'published') => {
@@ -43,14 +69,15 @@ export default function NewPagePage() {
             const pageData = {
                 title,
                 slug: slug || title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
-                content: JSON.stringify(content),
+                content: layoutType === 'standard' ? JSON.stringify(content) : null,
+                layoutType,
+                blocks: layoutType === 'magazine' ? blocks : [],
                 status: selectedStatus,
-                authorId: 'user-1', // Placeholder
+                authorId: 'user-1',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                // Default values for fields not yet in UI
                 showTitle: true,
-                builderEnabled: false
+                builderEnabled: layoutType === 'magazine'
             };
 
             await addDoc(collection(db, 'pages'), pageData);
@@ -65,14 +92,14 @@ export default function NewPagePage() {
 
     return (
         <div style={{ maxWidth: "1200px" }}>
-            <div className="post-editor-header">
+            <div className="post-editor-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
                 <div>
                     <Link href="/dashboard/pages" style={{ fontSize: "0.9rem", color: "var(--accent)", textDecoration: "none", display: "block", marginBottom: "0.5rem" }}>
                         ← Back to Pages
                     </Link>
                     <h1>Create New Page</h1>
                 </div>
-                <div className="post-editor-actions">
+                <div className="post-editor-actions" style={{ display: "flex", gap: "1rem" }}>
                     <button
                         className="btn"
                         onClick={() => handleSave('draft')}
@@ -91,10 +118,10 @@ export default function NewPagePage() {
                 </div>
             </div>
 
-            <div className="post-editor-layout">
+            <div className="post-editor-layout" style={{ display: "grid", gridTemplateColumns: "3fr 1fr", gap: "2rem" }}>
                 {/* Editor Area */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-                    <div style={{ borderRadius: "var(--radius-lg)" }}>
+                    <div className="glass" style={{ padding: "2rem", borderRadius: "var(--radius-lg)" }}>
                         <textarea
                             placeholder="Page Title..."
                             value={title}
@@ -138,7 +165,106 @@ export default function NewPagePage() {
                             </div>
                         </div>
 
-                        <Editor holder="editorjs-new-page" onChange={handleContentChange} />
+                        <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", borderBottom: "1px solid var(--border)" }}>
+                            <button
+                                onClick={() => setLayoutType('standard')}
+                                style={{
+                                    padding: "0.8rem 1.5rem",
+                                    border: "none",
+                                    background: "none",
+                                    borderBottom: layoutType === 'standard' ? "2px solid var(--accent)" : "none",
+                                    color: layoutType === 'standard' ? "var(--accent)" : "var(--text-secondary)",
+                                    fontWeight: "600",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                Standard Editor
+                            </button>
+                            <button
+                                onClick={() => setLayoutType('magazine')}
+                                style={{
+                                    padding: "0.8rem 1.5rem",
+                                    border: "none",
+                                    background: "none",
+                                    borderBottom: layoutType === 'magazine' ? "2px solid var(--accent)" : "none",
+                                    color: layoutType === 'magazine' ? "var(--accent)" : "var(--text-secondary)",
+                                    fontWeight: "600",
+                                    cursor: "pointer"
+                                }}
+                            >
+                                Magazine Builder
+                            </button>
+                        </div>
+
+                        {layoutType === 'standard' ? (
+                            <Editor holder="editorjs-new-page" onChange={handleContentChange} />
+                        ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+                                <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", padding: "1.5rem", backgroundColor: "var(--bg-secondary)", borderRadius: "var(--radius-md)", border: "1px dashed var(--border)" }}>
+                                    <button onClick={() => addBlock('hero-slider')} className="btn btn-sm" style={{ backgroundColor: "var(--bg-tertiary)" }}>+ Hero Slider</button>
+                                    <button onClick={() => addBlock('category-highlight')} className="btn btn-sm" style={{ backgroundColor: "var(--bg-tertiary)" }}>+ Category Highlight</button>
+                                    <button onClick={() => addBlock('post-grid')} className="btn btn-sm" style={{ backgroundColor: "var(--bg-tertiary)" }}>+ Post Grid</button>
+                                    <button onClick={() => addBlock('newsletter')} className="btn btn-sm" style={{ backgroundColor: "var(--bg-tertiary)" }}>+ Newsletter</button>
+                                    <button onClick={() => addBlock('trending-tags')} className="btn btn-sm" style={{ backgroundColor: "var(--bg-tertiary)" }}>+ Trending Tags</button>
+                                    <button onClick={() => addBlock('author-spotlight')} className="btn btn-sm" style={{ backgroundColor: "var(--bg-tertiary)" }}>+ Author Spotlight</button>
+                                    <button onClick={() => addBlock('social-sidebar')} className="btn btn-sm" style={{ backgroundColor: "var(--bg-tertiary)" }}>+ Social Sidebar</button>
+                                </div>
+
+                                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                                    {blocks.map((block, index) => (
+                                        <div key={block.id} className="glass" style={{ padding: "1.2rem", borderRadius: "var(--radius-md)", border: "1px solid var(--border)", position: "relative" }}>
+                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                                    <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase" }}>Block {index + 1}: {block.type.replace('-', ' ')}</span>
+                                                </div>
+                                                <div style={{ display: "flex", gap: "0.5rem" }}>
+                                                    <button onClick={() => moveBlock(index, 'up')} className="btn btn-sm" disabled={index === 0}>↑</button>
+                                                    <button onClick={() => moveBlock(index, 'down')} className="btn btn-sm" disabled={index === blocks.length - 1}>↓</button>
+                                                    <button onClick={() => removeBlock(block.id)} className="btn btn-sm" style={{ color: "#ef4444" }}>✕</button>
+                                                </div>
+                                            </div>
+
+                                            {(block.type === 'category-highlight' || block.type === 'post-grid') && (
+                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 100px", gap: "1rem" }}>
+                                                    <div>
+                                                        <label style={{ fontSize: "0.75rem", display: "block", marginBottom: "0.3rem" }}>Title</label>
+                                                        <input
+                                                            className="form-control"
+                                                            placeholder="Block Title"
+                                                            value={block.config.title}
+                                                            onChange={(e) => updateBlockConfig(block.id, { title: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ fontSize: "0.75rem", display: "block", marginBottom: "0.3rem" }}>Category Slug</label>
+                                                        <input
+                                                            className="form-control"
+                                                            placeholder="e.g. technology"
+                                                            value={block.config.categorySlug}
+                                                            onChange={(e) => updateBlockConfig(block.id, { categorySlug: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ fontSize: "0.75rem", display: "block", marginBottom: "0.3rem" }}>Limit</label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="number"
+                                                            value={block.config.limit}
+                                                            onChange={(e) => updateBlockConfig(block.id, { limit: parseInt(e.target.value) })}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {blocks.length === 0 && (
+                                        <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)" }}>
+                                            No blocks added yet. Use the buttons above to start building your page.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
