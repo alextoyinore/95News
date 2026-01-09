@@ -6,14 +6,32 @@ import ThemeToggle from "./ThemeToggle";
 
 import { useAuth } from "@/context/AuthContext";
 import { LogOut, User, Settings, ChevronDown, Menu, Activity } from "lucide-react";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export default function DashboardNavbar({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     const [totalPostsToday, setTotalPostsToday] = useState(0);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const { user, userRecord, signOut } = useAuth();
-    // ... (keep generic useEffect)
+
+    useEffect(() => {
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const postsQuery = query(
+            collection(db, "posts"),
+            where("status", "==", "published"),
+            where("createdAt", ">=", startOfToday)
+        );
+
+        const unsubscribe = onSnapshot(postsQuery, (snapshot) => {
+            setTotalPostsToday(snapshot.size);
+        }, (error) => {
+            console.error("Error listening to posts activity:", error);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     const initials = (userRecord?.displayName || user?.email || 'U').charAt(0).toUpperCase();
 
