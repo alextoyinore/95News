@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Pencil, Trash2, Plus, Search } from "lucide-react";
 import Link from "next/link";
-import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter, QueryConstraint, getCountFromServer, where } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc, limit, startAfter, QueryConstraint, getCountFromServer, where, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Page } from "@/types/firestore";
 import DashboardPagination from "@/components/DashboardPagination";
@@ -147,6 +147,20 @@ export default function PagesListPage() {
         }
     };
 
+    const handleStatusChange = async (pageObj: Page, newStatus: 'draft' | 'published') => {
+        try {
+            await updateDoc(doc(db, "pages", pageObj.id), {
+                status: newStatus,
+                updatedAt: new Date().toISOString()
+            });
+            // Update local state
+            setPages(pages.map(p => p.id === pageObj.id ? { ...p, status: newStatus } : p));
+        } catch (error) {
+            console.error("Error updating status:", error);
+            alert("Failed to update status.");
+        }
+    };
+
     if (loading) return <div style={{ padding: "3rem", textAlign: "center" }}>Loading pages...</div>;
 
     return (
@@ -210,14 +224,25 @@ export default function PagesListPage() {
                                     </td>
                                     <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>/{page.slug}</td>
                                     <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <span style={{
-                                            fontSize: "0.85rem",
-                                            fontWeight: "600",
-                                            color: page.status === "published" ? "#10b981" : "#f59e0b",
-                                            textTransform: "capitalize"
-                                        }}>
-                                            {page.status}
-                                        </span>
+                                        <select
+                                            value={page.status}
+                                            onChange={(e) => handleStatusChange(page, e.target.value as any)}
+                                            style={{
+                                                padding: "0.4rem 0.6rem",
+                                                borderRadius: "var(--radius-sm)",
+                                                border: "1px solid var(--border)",
+                                                backgroundColor: "var(--bg-secondary)",
+                                                color: page.status === "published" ? "#10b981" : "#f59e0b",
+                                                fontWeight: "600",
+                                                fontSize: "0.85rem",
+                                                outline: "none",
+                                                cursor: "pointer",
+                                                textTransform: "capitalize"
+                                            }}
+                                        >
+                                            <option value="published" style={{ color: "#10b981" }}>Published</option>
+                                            <option value="draft" style={{ color: "#f59e0b" }}>Draft</option>
+                                        </select>
                                     </td>
                                     <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
                                         {formatDate(page.updatedAt || page.createdAt)}
