@@ -76,7 +76,8 @@ export default function EditPagePage() {
         const newBlock = {
             id: Math.random().toString(36).substr(2, 9),
             type,
-            config: type === 'category-highlight' || type === 'post-grid' ? { title: '', categorySlug: '', limit: 4 } : {}
+            config: type === 'category-highlight' || type === 'post-grid' ? { title: '', categorySlug: '', limit: 4 } :
+                type === 'hero-slider' ? { categorySlug: '', tagSlug: 'featured', limit: 5 } : {}
         };
         setBlocks([...blocks, newBlock]);
     };
@@ -279,6 +280,38 @@ export default function EditPagePage() {
                                                             placeholder="e.g. technology"
                                                             value={block.config.categorySlug}
                                                             onChange={(e) => updateBlockConfig(block.id, { categorySlug: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ fontSize: "0.75rem", display: "block", marginBottom: "0.3rem" }}>Limit</label>
+                                                        <input
+                                                            className="form-control"
+                                                            type="number"
+                                                            value={block.config.limit}
+                                                            onChange={(e) => updateBlockConfig(block.id, { limit: parseInt(e.target.value) })}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {block.type === 'hero-slider' && (
+                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 100px", gap: "1rem" }}>
+                                                    <div>
+                                                        <label style={{ fontSize: "0.75rem", display: "block", marginBottom: "0.3rem" }}>Category Slug</label>
+                                                        <input
+                                                            className="form-control"
+                                                            placeholder="e.g. technology"
+                                                            value={block.config.categorySlug}
+                                                            onChange={(e) => updateBlockConfig(block.id, { categorySlug: e.target.value })}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ fontSize: "0.75rem", display: "block", marginBottom: "0.3rem" }}>Tag Slug (Fallback)</label>
+                                                        <input
+                                                            className="form-control"
+                                                            placeholder="e.g. featured"
+                                                            value={block.config.tagSlug}
+                                                            onChange={(e) => updateBlockConfig(block.id, { tagSlug: e.target.value })}
                                                         />
                                                     </div>
                                                     <div>

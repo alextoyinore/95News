@@ -29,8 +29,13 @@ export default async function MagazinePageRenderer({ page, layoutSettings }: Mag
     const renderBlock = async (block: MagazineBlock) => {
         switch (block.type) {
             case 'hero-slider':
-                const heroPosts = await fetchPostsByTag(block.config?.tagSlug || 'featured', block.config?.limit || 5);
-                return <div key={block.id} style={{ marginBottom: "4rem" }}><HeroSlider posts={heroPosts} /></div>;
+                let sliderPosts = [];
+                if (block.config?.categorySlug) {
+                    sliderPosts = await fetchSectionPosts(block.config.categorySlug, block.config.limit || 5);
+                } else {
+                    sliderPosts = await fetchPostsByTag(block.config?.tagSlug || 'featured', block.config?.limit || 5);
+                }
+                return <div key={block.id} style={{ marginBottom: "4rem" }}><HeroSlider posts={sliderPosts} /></div>;
 
             case 'category-highlight':
                 const highlightPosts = await fetchSectionPosts(block.config?.categorySlug, block.config?.limit || 4);
