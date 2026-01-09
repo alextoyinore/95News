@@ -138,16 +138,28 @@ export default async function Home() {
   // 3. Most Read
   let popularPosts: any[] = [];
   if (getWidgetActive('w3')) {
-    const popularQuery = query(
-      collection(db, "posts"),
-      where("status", "==", "published"),
-      orderBy("views", "desc"),
-      limit(5)
-    );
+    try {
+      const popularQuery = query(
+        collection(db, "posts"),
+        where("status", "==", "published"),
+        orderBy("views", "desc"),
+        limit(5)
+      );
 
-    // Strictly fetch by views. If index is missing, this will throw, asking dev to create index.
-    const popularSnap = await getDocs(popularQuery);
-    popularPosts = popularSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+      // Note: This requires a composite index in Firestore (status: asc, views: desc)
+      const popularSnap = await getDocs(popularQuery);
+      const rawPopular = popularSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+
+      if (rawPopular.length === 0) {
+        popularPosts = latestNewsPosts.slice(0, 5);
+      } else {
+        popularPosts = await resolvePostsData(rawPopular);
+      }
+    } catch (error) {
+      console.error("Error fetching popular posts (likely missing index):", error);
+      // Fallback: If popular fails (usually due to missing index), show latest as fallback
+      popularPosts = latestNewsPosts.slice(0, 5);
+    }
   }
 
   return (
