@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { getLayoutSettings, saveLayoutSettings, LayoutSettings } from '@/lib/layoutActions';
+import { getLayoutSettings, LayoutSettings } from '@/lib/layoutActions';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const initialTemplates = [
     { id: 'magazine', name: "Magazine Grid", icon: "📰", description: "Classic news layout with a large hero slider and categorized sections." },
@@ -55,10 +57,13 @@ export default function LayoutBuilderPage() {
         setIsSaving(true);
         setSaveSuccess(false);
         try {
-            await saveLayoutSettings({
+            const docRef = doc(db, "site_settings", "home_layout");
+            await setDoc(docRef, {
                 activeTemplateId,
-                widgets
-            });
+                widgets,
+                lastUpdated: serverTimestamp()
+            }, { merge: true });
+
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 3000);
         } catch (error) {
