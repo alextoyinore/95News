@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getLayoutSettings } from "@/lib/layoutActions";
-import { getPageById, fetchSectionPosts, fetchLatestPosts, resolvePostsData } from "@/lib/cmsActions";
+import { getPageById, fetchSectionPosts, fetchLatestPosts, resolvePostsData, fetchMostReadPosts } from "@/lib/cmsActions";
 import MagazinePageRenderer from "@/components/MagazinePageRenderer";
 import StandardPageRenderer from "@/components/StandardPageRenderer";
 import HeroSlider from "@/components/widgets/HeroSlider";
@@ -79,27 +79,10 @@ export default async function Home() {
   // 3. Most Read
   let popularPosts: any[] = [];
   if (getWidgetActive('w3')) {
-    try {
-      const popularQuery = query(
-        collection(db, "posts"),
-        where("status", "==", "published"),
-        orderBy("views", "desc"),
-        limit(5)
-      );
-
-      const popularSnap = await getDocs(popularQuery);
-      const rawPopular = popularSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
-
-      if (rawPopular.length === 0) {
-        popularPosts = latestNewsPosts.slice(0, 5);
-      } else {
-        popularPosts = await resolvePostsData(rawPopular);
-      }
-    } catch (error) {
-      console.error("Error fetching popular posts (likely missing index):", error);
-      popularPosts = latestNewsPosts.slice(0, 5);
-    }
+    popularPosts = await fetchMostReadPosts(5);
   }
+
+  console.log("Most Read widget - Final posts count:", popularPosts.length);
 
   const activeTemplateId = layoutSettings?.activeTemplateId || 'magazine';
 

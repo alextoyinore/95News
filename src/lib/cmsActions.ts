@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { collection, query, where, getDocs, limit, orderBy, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, limit, orderBy, doc, getDoc, getCountFromServer } from "firebase/firestore";
 import { Post, Category, User, Page } from "@/types/firestore";
 import { formatDate, getAuthorSlug } from "@/lib/utils";
 
@@ -51,7 +51,8 @@ export async function resolvePostsData(postDocs: Post[]) {
         authorId: post.authorId,
         authorSlug: authors[post.authorId]?.slug || "95news-author",
         date: formatDate(post.createdAt),
-        image: post.featuredImageUrl
+        image: post.featuredImageUrl,
+        views: post.views || 0
     }));
 }
 
@@ -80,6 +81,51 @@ export async function fetchLatestPosts(count: number = 4) {
     const snap = await getDocs(q);
     return await resolvePostsData(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
 }
+
+export async function fetchMostReadPosts(count: number = 5) {
+    try {
+        // First, get all published posts
+        const q = query(
+            collection(db, "posts"),
+            where("status", "==", "published"),
+            orderBy("createdAt", "desc"),
+            limit(50) // Get more posts to ensure we have enough with views
+        );
+        const snap = await getDocs(q);
+        const posts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post));
+
+        // Get view counts for each post from the views subcollection
+        const postsWithViews = await Promise.all(
+            posts.map(async (post) => {
+                const viewsSnapshot = await getCountFromServer(collection(db, 'posts', post.id, 'views'));
+                const viewCount = viewsSnapshot.data().count;
+                return { post, viewCount };
+            })
+        );
+
+        // Sort by view count and take the top posts
+        const sortedPosts = postsWithViews
+            .filter(item => item.viewCount > 0) // Only include posts with views
+            .sort((a, b) => b.viewCount - a.viewCount)
+            .slice(0, count)
+            .map(item => ({
+                ...item.post,
+                views: item.viewCount
+            }));
+
+        // If we don't have enough posts with views, fall back to latest posts
+        if (sortedPosts.length === 0) {
+            console.log("No posts with views found, using latest posts as fallback");
+            return await fetchLatestPosts(count);
+        }
+
+        return await resolvePostsData(sortedPosts);
+    } catch (error) {
+        console.error("Error fetching most read posts:", error);
+        return await fetchLatestPosts(count);
+    }
+}
+
 
 export async function fetchPostsByTag(tagSlug: string, count: number = 5) {
     let tagId = null;
