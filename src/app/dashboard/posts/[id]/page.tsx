@@ -334,7 +334,7 @@ export default function EditPostPage() {
             <div className="post-editor-layout">
                 {/* Editor Area */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-                    <div className="glass" style={{ padding: "2rem", borderRadius: "var(--radius-lg)" }}>
+                    <div className="glass editor-container-mobile">
                         {isLegacy ? (
                             <div style={{
                                 padding: "2rem",

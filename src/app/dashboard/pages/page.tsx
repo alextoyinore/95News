@@ -199,73 +199,75 @@ export default function PagesListPage() {
             </div>
 
             <div className="glass" style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                    <thead>
-                        <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Page Title</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Slug</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Status</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Last Modified</th>
-                            <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {pages.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
-                                    No pages found.
-                                </td>
+                <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", minWidth: "600px" }}>
+                        <thead>
+                            <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Page Title</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Slug</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Status</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Last Modified</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Actions</th>
                             </tr>
-                        ) : (
-                            pages.map((page) => (
-                                <tr key={page.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <div style={{ fontWeight: "600" }}>{page.title}</div>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>/{page.slug}</td>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <select
-                                            value={page.status}
-                                            onChange={(e) => handleStatusChange(page, e.target.value as any)}
-                                            style={{
-                                                padding: "0.4rem 0.6rem",
-                                                borderRadius: "var(--radius-sm)",
-                                                border: "1px solid var(--border)",
-                                                backgroundColor: "var(--bg-secondary)",
-                                                color: page.status === "published" ? "#10b981" : "#f59e0b",
-                                                fontWeight: "600",
-                                                fontSize: "0.85rem",
-                                                outline: "none",
-                                                cursor: "pointer",
-                                                textTransform: "capitalize"
-                                            }}
-                                        >
-                                            <option value="published" style={{ color: "#10b981" }}>Published</option>
-                                            <option value="draft" style={{ color: "#f59e0b" }}>Draft</option>
-                                        </select>
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
-                                        {formatDate(page.updatedAt || page.createdAt)}
-                                    </td>
-                                    <td style={{ padding: "1.2rem 1.5rem" }}>
-                                        <div style={{ display: "flex", gap: "1rem" }}>
-                                            <Link href={`/dashboard/pages/${page.id}`} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)" }} title="Edit">
-                                                <Pencil size={18} />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(page.id)}
-                                                style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444" }}
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </div>
+                        </thead>
+                        <tbody>
+                            {pages.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
+                                        No pages found.
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                pages.map((page) => (
+                                    <tr key={page.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ fontWeight: "600" }}>{page.title}</div>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-secondary)" }}>/{page.slug}</td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <select
+                                                value={page.status}
+                                                onChange={(e) => handleStatusChange(page, e.target.value as any)}
+                                                style={{
+                                                    padding: "0.4rem 0.6rem",
+                                                    borderRadius: "var(--radius-sm)",
+                                                    border: "1px solid var(--border)",
+                                                    backgroundColor: "var(--bg-secondary)",
+                                                    color: page.status === "published" ? "#10b981" : "#f59e0b",
+                                                    fontWeight: "600",
+                                                    fontSize: "0.85rem",
+                                                    outline: "none",
+                                                    cursor: "pointer",
+                                                    textTransform: "capitalize"
+                                                }}
+                                            >
+                                                <option value="published" style={{ color: "#10b981" }}>Published</option>
+                                                <option value="draft" style={{ color: "#f59e0b" }}>Draft</option>
+                                            </select>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                                            {formatDate(page.updatedAt || page.createdAt)}
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ display: "flex", gap: "1rem" }}>
+                                                <Link href={`/dashboard/pages/${page.id}`} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)" }} title="Edit">
+                                                    <Pencil size={18} />
+                                                </Link>
+                                                <button
+                                                    onClick={() => handleDelete(page.id)}
+                                                    style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444" }}
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
                 <DashboardPagination
                     currentPage={currentPage}
                     hasNextPage={hasNextPage}

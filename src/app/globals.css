@@ -718,3 +718,18 @@ input:checked+.toggle-slider:before {
     gap: 0.5rem;
   }
 }
+
+/* Post Editor Mobile Container */
+.editor-container-mobile {
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+}
+
+@media (max-width: 768px) {
+  .editor-container-mobile {
+    padding: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+  }
+}
