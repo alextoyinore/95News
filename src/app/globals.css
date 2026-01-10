@@ -202,6 +202,17 @@ img {
   font-size: clamp(1rem, 1.1vw, 1.15rem);
 }
 
+.article-content ul,
+.article-content ol {
+  margin-bottom: 2rem;
+  padding-left: 2rem;
+  line-height: 1.6;
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+}
+
 .article-content blockquote {
   margin: 3rem 0;
   padding: 2.5rem;
