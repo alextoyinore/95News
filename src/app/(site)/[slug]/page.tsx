@@ -46,6 +46,21 @@ async function getPostBySlug(slug: string) {
         console.error("Error fetching author:", e);
     }
 
+    // Resolve Contributors
+    let contributors: User[] = [];
+    if (data.contributors && data.contributors.length > 0) {
+        try {
+            const uniqueContributors = Array.from(new Set(data.contributors));
+            if (uniqueContributors.length > 0) {
+                const contribQuery = query(collection(db, "users"), where("id", "in", uniqueContributors.slice(0, 10)));
+                const contribSnap = await getDocs(contribQuery);
+                contributors = contribSnap.docs.map(d => ({ id: d.id, ...d.data() } as User));
+            }
+        } catch (e) {
+            console.error("Error fetching contributors:", e);
+        }
+    }
+
     // Resolve Category (first one)
     let category: Category | null = null;
     if (data.categoryIds && data.categoryIds.length > 0) {
@@ -64,6 +79,7 @@ async function getPostBySlug(slug: string) {
         ...data,
         id: docSnap.id,
         author,
+        contributors,
         category,
     };
 }
@@ -176,6 +192,19 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                     </div>
                                 </Link>
 
+                                {post.contributors && post.contributors.length > 0 && (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                                        <span style={{ fontWeight: "600", color: "var(--text-primary)" }}>Contributors</span>
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                                            {post.contributors.map((contributor: User, idx: number) => (
+                                                <Link key={contributor.id} href={`/author/${contributor.id}`} style={{ textDecoration: "underline" }}>
+                                                    {contributor.displayName || contributor.email || "Unknown"}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {post.category && (
                                     <Link href={`/category/${post.category.slug}`} style={{
                                         backgroundColor: "var(--accent)",
@@ -239,26 +268,30 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                         }}>
                             <ShareButtons url={currentUrl} title={post.title} />
                         </div>
-                    </article>
+                    </article >
 
-                    {post.author && (
-                        <AuthorBio author={{
-                            id: post.author.id,
-                            name: authorDisplayName,
-                            bio: post.author.bio || "Contributing writer at 95News.",
-                            avatar: post.author.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorDisplayName)}&background=random`
-                        }} />
-                    )}
+                    {
+                        post.author && (
+                            <AuthorBio author={{
+                                id: post.author.id,
+                                name: authorDisplayName,
+                                bio: post.author.bio || "Contributing writer at 95News.",
+                                avatar: post.author.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorDisplayName)}&background=random`
+                            }} />
+                        )
+                    }
 
-                    <Newsletter />
+                    < Newsletter />
 
                     <CommentSection postId={post.id} />
 
-                    {post.categoryIds && post.categoryIds.length > 0 && (
-                        <RelatedPosts categoryId={post.categoryIds[0]} currentPostId={post.id} />
-                    )}
-                </div>
-            </div>
+                    {
+                        post.categoryIds && post.categoryIds.length > 0 && (
+                            <RelatedPosts categoryId={post.categoryIds[0]} currentPostId={post.id} />
+                        )
+                    }
+                </div >
+            </div >
         </>
     );
 }

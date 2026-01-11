@@ -7,6 +7,7 @@ import { analyzeSeo, SeoAnalysisResult } from '@/lib/seoAnalyzer';
 import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, updateDoc, getDocs, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { Post } from '@/types/firestore';
 import MediaBrowser from '@/components/MediaBrowser';
 import { Sparkles } from 'lucide-react';
@@ -14,6 +15,7 @@ import { Sparkles } from 'lucide-react';
 export default function EditPostPage() {
     const router = useRouter();
     const params = useParams();
+    const { user } = useAuth();
     const [id] = useState(params.id as string);
     const [title, setTitle] = useState('');
     const [excerpt, setExcerpt] = useState('');
@@ -27,6 +29,8 @@ export default function EditPostPage() {
     const [content, setContent] = useState<any>(null);
     const [featuredImage, setFeaturedImage] = useState<string | null>(null);
     const [featuredImageCaption, setFeaturedImageCaption] = useState('');
+    const [authorId, setAuthorId] = useState('');
+    const [contributors, setContributors] = useState<string[]>([]);
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(true);
     const [date, setDate] = useState<string>('');
@@ -123,7 +127,11 @@ export default function EditPostPage() {
                 setCategoryIds(data.categoryIds || []);
                 setTags(data.tagIds || []);
                 setAudioUrl(data.audioUrl || '');
+                setTags(data.tagIds || []);
+                setAudioUrl(data.audioUrl || '');
                 setFeaturedImageCaption(data.featuredImageCaption || '');
+                setAuthorId(data.authorId || '');
+                setContributors(data.contributors || []);
 
                 if (data.featuredImageUrl) {
                     setFeaturedImage(data.featuredImageUrl);
@@ -210,6 +218,14 @@ export default function EditPostPage() {
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/(^-|-$)+/g, '');
 
+            // Handle Contributors
+            let updatedContributors = [...contributors];
+            if (user && authorId && user.uid !== authorId) {
+                if (!updatedContributors.includes(user.uid)) {
+                    updatedContributors.push(user.uid);
+                }
+            }
+
             const titleKeywords = title
                 .toLowerCase()
                 .split(' ')
@@ -226,6 +242,7 @@ export default function EditPostPage() {
                 metaDescription: metaDescription || '',
                 categoryIds: categoryIds || [],
                 tagIds: tags || [],
+                contributors: updatedContributors,
                 content: JSON.stringify(content) || '',
                 featuredImageUrl: featuredImage || '',
                 featuredImageCaption: featuredImageCaption || '',

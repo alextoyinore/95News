@@ -11,6 +11,7 @@ import { Search, Star, Zap, Pencil, Trash2 } from "lucide-react";
 export default function PostsPage() {
     const [posts, setPosts] = useState<Post[]>([]);
     const [categoriesMap, setCategoriesMap] = useState<Record<string, string>>({});
+    const [authorsMap, setAuthorsMap] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -140,6 +141,30 @@ export default function PostsPage() {
             setPosts(items);
             setHasNextPage(hasNext);
             setLastDoc(docs[items.length - 1] || null);
+
+            // Fetch authors
+            const authorIds = Array.from(new Set(items.map(p => p.authorId)));
+            const newAuthors: Record<string, string> = { ...authorsMap };
+            let needsUpdate = false;
+
+            for (const uid of authorIds) {
+                if (uid && !newAuthors[uid]) {
+                    try {
+                        const userDoc = await getDocs(query(collection(db, "users"), where("id", "==", uid), limit(1)));
+                        if (!userDoc.empty) {
+                            const userData = userDoc.docs[0].data();
+                            newAuthors[uid] = userData.displayName || userData.email || "Unknown";
+                            needsUpdate = true;
+                        }
+                    } catch (e) {
+                        console.error(`Error fetching author ${uid}:`, e);
+                    }
+                }
+            }
+
+            if (needsUpdate) {
+                setAuthorsMap(newAuthors);
+            }
 
             if (page === 1) {
                 setPageTokens([null]);
@@ -331,6 +356,7 @@ export default function PostsPage() {
                         <thead>
                             <tr style={{ backgroundColor: "var(--bg-tertiary)", borderBottom: "1px solid var(--border)" }}>
                                 <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Title</th>
+                                <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Author</th>
                                 <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Category</th>
                                 <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600" }}>Status</th>
                                 <th style={{ padding: "1.2rem 1.5rem", fontWeight: "600", textAlign: "center" }}>Featured</th>
@@ -342,7 +368,7 @@ export default function PostsPage() {
                         <tbody>
                             {posts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} style={{ padding: "2rem", textAlign: "center", color: "var(--text-secondary)" }}>
+                                    <td colSpan={8} style={{ padding: "2rem", textAlign: "center", color: "var(--text-secondary)" }}>
                                         No posts found. Create your first one!
                                     </td>
                                 </tr>
@@ -351,6 +377,11 @@ export default function PostsPage() {
                                     <tr key={post.id} style={{ borderBottom: "1px solid var(--border)", transition: "background-color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--bg-tertiary)"} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}>
                                         <td style={{ padding: "1.2rem 1.5rem" }}>
                                             <div style={{ fontWeight: "600" }}>{post.title}</div>
+                                        </td>
+                                        <td style={{ padding: "1.2rem 1.5rem" }}>
+                                            <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                                                {authorsMap[post.authorId] || "Loading..."}
+                                            </div>
                                         </td>
                                         <td style={{ padding: "1.2rem 1.5rem" }}>
                                             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
