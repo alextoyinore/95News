@@ -11,6 +11,8 @@ import {
     limit,
     orderBy,
     startAfter,
+    doc,
+    getDoc,
 } from "firebase/firestore";
 import { Post, User } from "@/types/firestore";
 import { formatDate, getAuthorSlug, getDateSlugs } from "@/lib/utils";
@@ -49,13 +51,13 @@ export default function FetchMorePosts({ initialPosts, queryConstraints, limitCo
         if (authorsCache[authorId]) return authorsCache[authorId];
 
         try {
-            const userSnap = await getDocs(query(collection(db, "users"), where("id", "==", authorId), limit(1)));
-            if (!userSnap.empty) {
-                const userData = userSnap.docs[0].data() as User;
+            const userDocSnap = await getDoc(doc(db, "users", authorId));
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data() as User;
                 const info = {
                     name: userData.displayName || userData.email || "Unknown Author",
-                    slug: getAuthorSlug(userData),
-                    id: userData.id
+                    slug: getAuthorSlug({ ...userData, id: userDocSnap.id } as User),
+                    id: userDocSnap.id
                 };
                 setAuthorsCache(prev => ({ ...prev, [authorId]: info }));
                 return info;

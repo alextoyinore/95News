@@ -22,14 +22,18 @@ export async function resolvePostsData(postDocs: Post[]) {
     const authors: { [key: string]: { name: string, slug: string, id: string } } = {};
 
     for (const id of authorIds) {
-        const userSnap = await getDocs(query(collection(db, "users"), where("id", "==", id), limit(1)));
-        if (!userSnap.empty) {
-            const userData = userSnap.docs[0].data() as User;
-            authors[id] = {
-                id: userData.id,
-                name: userData.displayName || userData.email || "95News",
-                slug: getAuthorSlug(userData)
-            };
+        try {
+            const userDocSnap = await getDoc(doc(db, "users", id));
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data() as User;
+                authors[id] = {
+                    id: userDocSnap.id,
+                    name: userData.displayName || userData.email || "95News",
+                    slug: getAuthorSlug({ ...userData, id: userDocSnap.id } as User)
+                };
+            }
+        } catch (error) {
+            console.error(`Error fetching author ${id}:`, error);
         }
     }
 

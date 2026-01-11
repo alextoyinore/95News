@@ -45,7 +45,7 @@ export default function PostCard({ post, variant = "vertical", imageHeight = "24
                         {post.excerpt && <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "0.8rem", display: "-webkit-box", WebkitLineClamp: "2", WebkitBoxOrient: "vertical", overflow: "hidden" }}>{post.excerpt}</p>}
                         <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", gap: "1rem" }}>
                             {post.authorId ? (
-                                <Link href={`/author/${post.authorId}`} className="hover-accent" style={{ transition: "color 0.2s" }}>
+                                <Link href={`/author/${encodeURIComponent(post.authorId)}`} className="hover-accent" style={{ transition: "color 0.2s" }}>
                                     {post.author}
                                 </Link>
                             ) : (
@@ -113,7 +113,7 @@ export default function PostCard({ post, variant = "vertical", imageHeight = "24
             </Link>
             <div style={{ display: "flex", gap: "1rem", color: "var(--text-muted)", fontSize: "0.85rem", marginTop: post.excerpt ? "0" : "auto", position: "relative", zIndex: 10 }}>
                 {post.authorId ? (
-                    <Link href={`/author/${post.authorId}`} style={{ transition: "color 0.2s" }} className="hover-accent">
+                    <Link href={`/author/${encodeURIComponent(post.authorId)}`} className="hover-accent" style={{ transition: "color 0.2s" }}>
                         {post.author}
                     </Link>
                 ) : (

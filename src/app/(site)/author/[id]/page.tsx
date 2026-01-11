@@ -10,7 +10,8 @@ interface AuthorArchiveProps {
 }
 
 export default async function AuthorArchive({ params }: AuthorArchiveProps) {
-    const { id } = await params;
+    const { id: rawId } = await params;
+    const id = decodeURIComponent(rawId);
 
     const userDocRef = doc(db, "users", id);
     const userDocSnap = await getDoc(userDocRef);
@@ -23,10 +24,10 @@ export default async function AuthorArchive({ params }: AuthorArchiveProps) {
     const authorName = author.displayName || author.email || "Unknown Author";
     const limitCount = 8;
 
-    // Fetch initial posts for the author
+    // Fetch initial posts for the author using the Document ID
     const q = query(
         collection(db, "posts"),
-        where("authorId", "==", author.id),
+        where("authorId", "==", userDocSnap.id),
         where("status", "==", "published"),
         orderBy("createdAt", "desc"),
         limit(limitCount)
@@ -87,7 +88,7 @@ export default async function AuthorArchive({ params }: AuthorArchiveProps) {
                 initialPosts={initialPosts}
                 limitCount={limitCount}
                 queryConstraints={[
-                    { field: "authorId", operator: "==", value: author.id }
+                    { field: "authorId", operator: "==", value: userDocSnap.id }
                 ]}
                 initialAuthors={authors}
                 context={{

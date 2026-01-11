@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
-import { collection, getDocs, query, where, limit } from "firebase/firestore";
+import { collection, getDocs, query, where, limit, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Post, User, Category, Page } from "@/types/firestore";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -37,10 +37,11 @@ async function getPostBySlug(slug: string) {
     // Resolve Author
     let author: User | null = null;
     try {
-        const authorQuery = query(collection(db, "users"), where("id", "==", data.authorId), limit(1));
-        const authorSnap = await getDocs(authorQuery);
-        if (!authorSnap.empty) {
-            author = { id: authorSnap.docs[0].id, ...authorSnap.docs[0].data() } as User;
+        if (data.authorId) {
+            const authorDoc = await getDoc(doc(db, "users", data.authorId));
+            if (authorDoc.exists()) {
+                author = { id: authorDoc.id, ...authorDoc.data() } as User;
+            }
         }
     } catch (e) {
         console.error("Error fetching author:", e);
@@ -52,9 +53,12 @@ async function getPostBySlug(slug: string) {
         try {
             const uniqueContributors = Array.from(new Set(data.contributors));
             if (uniqueContributors.length > 0) {
-                const contribQuery = query(collection(db, "users"), where("id", "in", uniqueContributors.slice(0, 10)));
-                const contribSnap = await getDocs(contribQuery);
-                contributors = contribSnap.docs.map(d => ({ id: d.id, ...d.data() } as User));
+                const contributorDocs = await Promise.all(
+                    uniqueContributors.slice(0, 10).map(id => getDoc(doc(db, "users", id)))
+                );
+                contributors = contributorDocs
+                    .filter(d => d.exists())
+                    .map(d => ({ id: d.id, ...d.data() } as User));
             }
         } catch (e) {
             console.error("Error fetching contributors:", e);
@@ -167,7 +171,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                 flexWrap: "wrap",
                                 marginBottom: "1.5rem"
                             }}>
-                                <Link href={authorId ? `/author/${authorId}` : "#"} style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+                                <Link href={authorId ? `/author/${authorId.trim()}` : "#"} style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
                                     <div style={{
                                         width: "48px",
                                         height: "48px",
