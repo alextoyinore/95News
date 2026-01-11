@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Laptop } from "lucide-react";
 
 export default function ThemeToggle() {
     const { theme, setTheme } = useTheme();
@@ -14,9 +14,15 @@ export default function ThemeToggle() {
 
     if (!mounted) return <div style={{ width: "40px", height: "40px" }} />;
 
+    const cycleTheme = () => {
+        if (theme === "light") setTheme("dark");
+        else if (theme === "dark") setTheme("system");
+        else setTheme("light");
+    };
+
     return (
         <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={cycleTheme}
             className="btn"
             style={{
                 width: "40px",
@@ -30,9 +36,16 @@ export default function ThemeToggle() {
                 fontSize: "1.2rem",
                 color: "var(--text-primary)"
             }}
+            title={`Current theme: ${theme === 'system' ? 'System' : theme === 'dark' ? 'Dark' : 'Light'}`}
             aria-label="Toggle Theme"
         >
-            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+            {theme === "light" ? (
+                <Sun size={20} />
+            ) : theme === "dark" ? (
+                <Moon size={20} />
+            ) : (
+                <Laptop size={20} />
+            )}
         </button>
     );
 }
