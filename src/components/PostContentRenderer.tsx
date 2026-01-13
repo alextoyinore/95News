@@ -1,6 +1,9 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
+import { Copy, Check } from 'lucide-react';
 
 interface Block {
     type: string;
@@ -11,7 +14,55 @@ interface PostContentRendererProps {
     content: string | any; // JSON string or object from EditorJS
 }
 
+const CodeBlock = ({ code, language = 'javascript' }: { code: string, language?: string }) => {
+    const [copied, setCopied] = useState(false);
+
+    useEffect(() => {
+        Prism.highlightAll();
+    }, [code]);
+
+    const handleCopy = async () => {
+        // Create a temporary textarea to decode HTML entities
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = code;
+        const decodedCode = textarea.value;
+
+        try {
+            await navigator.clipboard.writeText(decodedCode);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy code:', err);
+        }
+    };
+
+    return (
+        <div className="relative group my-8 rounded-lg overflow-hidden bg-[#2d2d2d]">
+            <div className="absolute right-4 top-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <span className="text-xs text-gray-400 font-mono">{language}</span>
+                <button
+                    onClick={handleCopy}
+                    className="p-2 hover:bg-white/10 rounded-md transition-colors text-gray-300"
+                    title="Copy code"
+                >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                </button>
+            </div>
+            <pre className="!m-0 !p-6 !bg-transparent overflow-x-auto">
+                <code
+                    className={`language-${language}`}
+                    dangerouslySetInnerHTML={{ __html: code }}
+                />
+            </pre>
+        </div>
+    );
+};
+
 const PostContentRenderer: React.FC<PostContentRendererProps> = ({ content }) => {
+    useEffect(() => {
+        Prism.highlightAll();
+    }, [content]);
+
     if (!content) return null;
 
     let blocks: Block[] = [];
@@ -90,26 +141,34 @@ const PostContentRenderer: React.FC<PostContentRendererProps> = ({ content }) =>
 
                     case 'code':
                         return (
-                            <pre key={index}>
-                                <code className="language-javascript">{block.data.code}</code>
-                            </pre>
+                            <CodeBlock
+                                key={index}
+                                code={block.data.code}
+                                language="javascript"
+                            />
                         );
 
                     case 'delimiter':
                         return <hr key={index} style={{ margin: '3rem 0', border: 'none', borderTop: '2px solid var(--border)' }} />;
 
                     case 'embed':
+                        const aspectRatio = block.data.height && block.data.width
+                            ? (block.data.height / block.data.width) * 100
+                            : 56.25; // Default 16:9
+
                         return (
-                            <div className="embed-container" key={index}>
-                                <iframe
-                                    src={block.data.embed}
-                                    title={block.data.caption || "Embed content"}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
+                            <figure key={index} className="embed-wrapper">
+                                <div className="embed-responsive" style={{ paddingBottom: `${aspectRatio}%` }}>
+                                    <iframe
+                                        src={block.data.embed}
+                                        title={block.data.caption || "Embed content"}
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                </div>
                                 {block.data.caption && <figcaption>{block.data.caption}</figcaption>}
-                            </div>
+                            </figure>
                         );
 
                     case 'warning':

@@ -128,7 +128,21 @@ const Editor: React.FC<EditorProps> = ({ data, onChange, holder }) => {
                         },
                         quote: Quote,
                         table: Table,
-                        embed: Embed,
+                        embed: {
+                            class: Embed,
+                            config: {
+                                services: {
+                                    youtube: true,
+                                    twitter: true,
+                                    instagram: true,
+                                    facebook: true,
+                                    vimeo: true,
+                                    gfycat: true,
+                                    imgur: true,
+                                    pinterest: true,
+                                }
+                            }
+                        },
                         marker: Marker,
                         inlineCode: InlineCode,
                         delimiter: Delimiter,
