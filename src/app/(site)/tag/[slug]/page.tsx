@@ -58,7 +58,7 @@ export default async function TagArchive({ params }: { params: Promise<{ slug: s
     const limitCount = 12;
     const postsQuery = query(
         collection(db, "posts"),
-        where("tagIds", "array-contains", tag.id),
+        where("tagIds", "array-contains", tag.name),
         where("status", "==", "published"),
         orderBy("createdAt", "desc"),
         limit(limitCount)
@@ -111,7 +111,7 @@ export default async function TagArchive({ params }: { params: Promise<{ slug: s
                 initialPosts={initialPosts}
                 limitCount={limitCount}
                 queryConstraints={[
-                    { field: "tagIds", operator: "array-contains", value: tag.id }
+                    { field: "tagIds", operator: "array-contains", value: tag.name }
                 ]}
                 initialAuthors={authors}
                 context={{

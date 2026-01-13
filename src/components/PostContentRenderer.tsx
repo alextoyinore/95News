@@ -37,15 +37,25 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string, language?:
     };
 
     return (
-        <div className="relative group my-8 rounded-lg overflow-hidden bg-[#2d2d2d]">
-            <div className="absolute right-4 top-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                <span className="text-xs text-gray-400 font-mono">{language}</span>
+        <div className="relative group my-8 bg-[#2d2d2d] rounded-lg overflow-hidden border border-[#404040]">
+            <div className="flex items-center justify-between px-4 py-2 bg-[#1e1e1e] border-b border-[#404040]">
+                <span className="text-xs text-gray-400 font-mono lowercase">{language}</span>
                 <button
                     onClick={handleCopy}
-                    className="p-2 hover:bg-white/10 rounded-md transition-colors text-gray-300"
+                    className="flex items-center gap-2 px-2 py-1 text-xs text-gray-400 hover:text-white transition-colors rounded hover:bg-white/10"
                     title="Copy code"
                 >
-                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                    {copied ? (
+                        <>
+                            <Check size={14} />
+                            <span>Copied!</span>
+                        </>
+                    ) : (
+                        <>
+                            <Copy size={14} />
+                            <span>Copy</span>
+                        </>
+                    )}
                 </button>
             </div>
             <pre className="!m-0 !p-6 !bg-transparent overflow-x-auto">

@@ -1,17 +1,40 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { uploadImage } from '@/lib/cloudinary';
 
 export default function ProfilePage() {
     const { user, userRecord } = useAuth();
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState({
         displayName: userRecord?.displayName || '',
         bio: userRecord?.bio || ''
     });
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+
+        setIsUploading(true);
+        try {
+            const url = await uploadImage(file);
+            const userRef = doc(db, 'users', user.uid);
+            await updateDoc(userRef, {
+                photoURL: url
+            });
+            // We rely on the real-time listener in AuthContext to update the userRecord
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            alert('Failed to upload avatar');
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     React.useEffect(() => {
         if (userRecord) {
@@ -66,7 +89,8 @@ export default function ProfilePage() {
                             fontSize: "3rem",
                             fontWeight: "700",
                             overflow: "hidden",
-                            border: "4px solid var(--bg-tertiary)"
+                            border: "4px solid var(--bg-tertiary)",
+                            position: "relative"
                         }}>
                             {userRecord.photoURL ? (
                                 <img
@@ -75,11 +99,38 @@ export default function ProfilePage() {
                                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                 />
                             ) : initials}
+
+                            {isUploading && (
+                                <div style={{
+                                    position: "absolute",
+                                    inset: 0,
+                                    backgroundColor: "rgba(0,0,0,0.5)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center"
+                                }}>
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                                </div>
+                            )}
                         </div>
                         <h3 style={{ marginBottom: "0.5rem" }}>{userRecord.displayName || user?.email?.split('@')[0]}</h3>
                         <p style={{ color: "var(--accent)", fontWeight: "600", fontSize: "0.9rem", textTransform: "uppercase" }}>{userRecord.role}</p>
                         <div style={{ marginTop: "2rem" }}>
-                            <button className="btn" style={{ width: "100%", border: "1px solid var(--border)" }}>Change Avatar</button>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                style={{ display: 'none' }}
+                                accept="image/*"
+                                onChange={handleFileChange}
+                            />
+                            <button
+                                className="btn"
+                                style={{ width: "100%", border: "1px solid var(--border)" }}
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading}
+                            >
+                                {isUploading ? 'Uploading...' : 'Change Avatar'}
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -265,6 +265,28 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                             <PostContentRenderer content={post.content} />
                         </div>
 
+                        {post.tagIds && post.tagIds.length > 0 && (
+                            <div style={{ marginBottom: "2rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                                {post.tagIds.map((tag: string) => (
+                                    <Link
+                                        key={tag}
+                                        href={`/tag/${tag.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')}`}
+                                        style={{
+                                            fontSize: "0.85rem",
+                                            padding: "0.3rem 0.8rem",
+                                            backgroundColor: "var(--bg-tertiary)",
+                                            borderRadius: "20px",
+                                            color: "var(--text-secondary)",
+                                            transition: "all 0.2s"
+                                        }}
+                                        className="hover:bg-[var(--accent)] hover:text-white"
+                                    >
+                                        #{tag}
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+
                         <div style={{
                             paddingTop: "2rem",
                             borderTop: "1px solid var(--border)",
