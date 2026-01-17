@@ -10,9 +10,10 @@ interface PostMetadataProps {
     postId: string;
     publishedAt?: any;
     createdAt: any;
+    readTime?: number;
 }
 
-export default function PostMetadata({ postId, publishedAt, createdAt }: PostMetadataProps) {
+export default function PostMetadata({ postId, publishedAt, createdAt, readTime }: PostMetadataProps) {
     const { user } = useAuth();
     const [likeCount, setLikeCount] = useState(0);
     const [viewCount, setViewCount] = useState(0);
@@ -89,6 +90,22 @@ export default function PostMetadata({ postId, publishedAt, createdAt }: PostMet
                 </svg>
                 <span>{viewCount.toLocaleString()} views</span>
             </div>
+
+            {readTime && (
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.9rem'
+                }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>{readTime} min read</span>
+                </div>
+            )}
 
             <button
                 onClick={handleLike}

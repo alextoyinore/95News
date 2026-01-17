@@ -21,7 +21,6 @@ import { getPageBySlug } from "@/lib/cmsActions";
 import MagazinePageRenderer from "@/components/MagazinePageRenderer";
 import StandardPageRenderer from "@/components/StandardPageRenderer";
 import { getLayoutSettings } from "@/lib/layoutActions";
-import { Clock } from "lucide-react";
 
 interface ArticlePageProps {
     params: Promise<{ slug: string }>;
@@ -204,10 +203,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                     </div>
                                 </Link>
 
-                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem", marginLeft: "auto" }}>
-                                    <Clock size={16} />
-                                    <span>{readTime} min read</span>
-                                </div>
 
                                 {post.contributors && post.contributors.length > 0 && (
                                     <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
@@ -242,6 +237,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                             postId={post.id}
                             publishedAt={serializedPublishedAt}
                             createdAt={serializedCreatedAt}
+                            readTime={readTime}
                         />
 
                         {post.audioUrl ? (
