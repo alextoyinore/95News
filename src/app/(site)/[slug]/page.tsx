@@ -8,9 +8,10 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import AuthorBio from "@/components/AuthorBio";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
 import PostContentRenderer from "@/components/PostContentRenderer";
-import { formatDate, getDateSlugs } from "@/lib/utils";
+import { formatDate, getDateSlugs, calculateReadTime } from "@/lib/utils";
 import Newsletter from "@/components/widgets/Newsletter";
 import AudioPlayer from "@/components/AudioPlayer";
+import BrowserAudioPlayer from "@/components/BrowserAudioPlayer";
 import ShareButtons from "@/components/ShareButtons";
 import PostMetadata from "@/components/PostMetadata";
 import CommentSection from "@/components/CommentSection";
@@ -20,6 +21,7 @@ import { getPageBySlug } from "@/lib/cmsActions";
 import MagazinePageRenderer from "@/components/MagazinePageRenderer";
 import StandardPageRenderer from "@/components/StandardPageRenderer";
 import { getLayoutSettings } from "@/lib/layoutActions";
+import { Clock } from "lucide-react";
 
 interface ArticlePageProps {
     params: Promise<{ slug: string }>;
@@ -134,6 +136,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     const serializedCreatedAt = post.createdAt ? (typeof post.createdAt === 'string' ? post.createdAt : post.createdAt.toDate().toISOString()) : new Date().toISOString();
     const serializedPublishedAt = post.publishedAt ? (typeof post.publishedAt === 'string' ? post.publishedAt : post.publishedAt.toDate().toISOString()) : undefined;
     const archiveSlugs = getDateSlugs(post.createdAt);
+    const readTime = calculateReadTime(post.content);
 
     return (
         <>
@@ -201,6 +204,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                     </div>
                                 </Link>
 
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--text-secondary)", fontSize: "0.9rem", marginLeft: "auto" }}>
+                                    <Clock size={16} />
+                                    <span>{readTime} min read</span>
+                                </div>
+
                                 {post.contributors && post.contributors.length > 0 && (
                                     <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.9rem", color: "var(--text-secondary)" }}>
                                         <span style={{ fontWeight: "600", color: "var(--text-primary)" }}>Contributors</span>
@@ -236,8 +244,10 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                             createdAt={serializedCreatedAt}
                         />
 
-                        {post.audioUrl && (
+                        {post.audioUrl ? (
                             <AudioPlayer audioUrl={post.audioUrl} title={post.title} />
+                        ) : (
+                            <BrowserAudioPlayer content={post.content} title={post.title} />
                         )}
 
                         {post.featuredImageUrl && (

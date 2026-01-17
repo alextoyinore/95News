@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false });
 import { analyzeSeo, SeoAnalysisResult } from '@/lib/seoAnalyzer';
+import { Upload, Music, X as CloseIcon } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, updateDoc, getDocs, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -42,6 +43,7 @@ export default function EditPostPage() {
     const [generating, setGenerating] = useState<string | null>(null);
     const [categorySearch, setCategorySearch] = useState('');
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    const [uploadingAudio, setUploadingAudio] = useState(false);
     const [seoResult, setSeoResult] = useState<SeoAnalysisResult>({
         score: 0,
         grade: 'F',
@@ -296,6 +298,56 @@ export default function EditPostPage() {
         setIsMediaBrowserOpen(false);
     };
 
+    const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+
+        setUploadingAudio(true);
+        try {
+            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+            const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+            if (!cloudName || !uploadPreset) {
+                alert("Cloudinary configuration missing.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', uploadPreset);
+            formData.append('resource_type', 'auto');
+
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) throw new Error('Upload failed');
+
+            const data = await res.json();
+            setAudioUrl(data.secure_url);
+            setGenerateAudio(false);
+        } catch (error) {
+            console.error("Audio upload error:", error);
+            alert("Failed to upload audio.");
+        } finally {
+            setUploadingAudio(false);
+        }
+    };
+
+    const handleTagInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        if (value.endsWith(',')) {
+            const newTag = value.slice(0, -1).trim();
+            if (newTag && !tags.includes(newTag)) {
+                setTags([...tags, newTag]);
+                setTagInput('');
+            }
+        } else {
+            setTagInput(value);
+        }
+    };
+
     const handleTagKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -496,8 +548,9 @@ export default function EditPostPage() {
                                     type="text"
                                     placeholder="Add tag (Enter or comma)..."
                                     value={tagInput}
-                                    onChange={(e) => setTagInput(e.target.value)}
+                                    onChange={handleTagInputChange}
                                     onKeyDown={handleTagKeyDown}
+                                    enterKeyHint="done"
                                     style={{ width: "100%", padding: "0.5rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", backgroundColor: "var(--bg-primary)" }}
                                 />
                                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.8rem" }}>
@@ -580,14 +633,42 @@ export default function EditPostPage() {
                                 </div>
 
                                 {(generateAudio || audioUrl) && (
-                                    <input
-                                        type="text"
-                                        placeholder="Audio URL (if custom)"
-                                        value={audioUrl}
-                                        onChange={(e) => setAudioUrl(e.target.value)}
-                                        style={{ width: "100%", padding: "0.5rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", backgroundColor: "var(--bg-primary)", fontSize: "0.85rem" }}
-                                    />
+                                    <div style={{ position: "relative" }}>
+                                        <input
+                                            type="text"
+                                            placeholder="Audio URL (if custom)"
+                                            value={audioUrl}
+                                            onChange={(e) => setAudioUrl(e.target.value)}
+                                            style={{ width: "100%", padding: "0.5rem", paddingRight: "2.5rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", backgroundColor: "var(--bg-primary)", fontSize: "0.85rem" }}
+                                        />
+                                        {audioUrl && (
+                                            <button
+                                                onClick={() => setAudioUrl('')}
+                                                style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}
+                                            >
+                                                <CloseIcon size={14} />
+                                            </button>
+                                        )}
+                                    </div>
                                 )}
+
+                                <div style={{ marginTop: "0.5rem" }}>
+                                    <label className="btn" style={{
+                                        width: "100%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        gap: "0.5rem",
+                                        fontSize: "0.85rem",
+                                        padding: "0.5rem",
+                                        cursor: "pointer",
+                                        border: "1px dashed var(--border)"
+                                    }}>
+                                        <Upload size={14} />
+                                        {uploadingAudio ? "Uploading..." : "Upload Audio File"}
+                                        <input type="file" hidden accept="audio/*" onChange={handleAudioUpload} disabled={uploadingAudio} />
+                                    </label>
+                                </div>
                             </div>
 
                             <div>

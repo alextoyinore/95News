@@ -41,3 +41,45 @@ export const getDateSlugs = (dateVal: any) => {
         return { year: "2026", month: "01", day: "01" };
     }
 };
+export const calculateReadTime = (content: any): number => {
+    if (!content) return 0;
+
+    let text = "";
+    try {
+        const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+        const blocks = parsed.blocks || [];
+
+        blocks.forEach((block: any) => {
+            if (block.data?.text) {
+                text += block.data.text + " ";
+            } else if (block.data?.items) {
+                // For list blocks
+                block.data.items.forEach((item: string) => {
+                    text += item + " ";
+                });
+            } else if (block.data?.content) {
+                // For table blocks
+                block.data.content.forEach((row: string[]) => {
+                    row.forEach((cell: string) => {
+                        text += cell + " ";
+                    });
+                });
+            }
+        });
+    } catch (e) {
+        // If it's not JSON, it might be raw HTML or text
+        text = content.toString();
+    }
+
+    // Strip HTML tags
+    const cleanText = text.replace(/<[^>]*>?/gm, '');
+
+    // Calculate words (roughly)
+    const words = cleanText.trim().split(/\s+/).length;
+
+    // Average reading speed: 200-250 words per minute
+    const wpm = 225;
+    const minutes = Math.ceil(words / wpm);
+
+    return minutes > 0 ? minutes : 1;
+};
