@@ -118,9 +118,9 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
 
                 {/* Left: Album Art Section */}
                 <div className="">
-                    <div className="album-art">
+                    <div className="">
                         {currentPost.image ? (
-                            <img src={currentPost.image} alt={currentPost.title} />
+                            <img style={{ borderRadius: "1rem", overflow: "hidden", width: "100%", minHeight: "300px", objectFit: "cover" }} src={currentPost.image} alt={currentPost.title} />
                         ) : (
                             <div className="placeholder-art">95News Audio</div>
                         )}
@@ -231,7 +231,7 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     min-height: 600px;
                 }
                 .album-art-panel {
-                    padding: 2rem;
+                    padding: 1rem;
                     display: flex;
                     align-items: center;
                     justify-content: center;
