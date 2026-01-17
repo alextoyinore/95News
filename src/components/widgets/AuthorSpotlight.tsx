@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, limit, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
+import { getLayoutSettings } from "@/lib/layoutActions";
 import { User } from "@/types/firestore";
 
 export default function AuthorSpotlight() {
@@ -13,10 +14,24 @@ export default function AuthorSpotlight() {
     useEffect(() => {
         const fetchAuthor = async () => {
             try {
-                // Fetch potential editors/superusers
+                // 1. Fetch Layout Settings to see if an author is manually selected
+                const settings = await getLayoutSettings();
+                const manualAuthorId = settings?.spotlightAuthorId;
+
+                if (manualAuthorId) {
+                    const userDoc = await getDoc(doc(db, "users", manualAuthorId));
+                    if (userDoc.exists()) {
+                        setAuthor({ id: userDoc.id, ...userDoc.data() } as User);
+                        setLoading(false);
+                        return;
+                    }
+                }
+
+                // 2. Fallback to rotation logic
+                // Fetch potential authors
                 const q = query(
                     collection(db, "users"),
-                    where("role", "in", ["editor", "superuser"])
+                    where("role", "in", ["editor", "superuser", "writer", "contributor"])
                 );
                 const snap = await getDocs(q);
 

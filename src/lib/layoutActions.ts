@@ -6,6 +6,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 export interface LayoutSettings {
     activeTemplateId: string;
     homePageId?: string;
+    spotlightAuthorId?: string;
     widgets: {
         id: string;
         name: string;
@@ -43,6 +44,7 @@ export const saveLayoutSettings = async (settings: LayoutSettings) => {
         await setDoc(docRef, {
             activeTemplateId: settings.activeTemplateId,
             homePageId: settings.homePageId || null,
+            spotlightAuthorId: settings.spotlightAuthorId || null,
             widgets: settings.widgets,
             lastUpdated: serverTimestamp()
         }, { merge: true });

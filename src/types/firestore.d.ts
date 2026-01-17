@@ -9,7 +9,7 @@ export interface User {
 
 export interface MagazineBlock {
     id: string;
-    type: 'category-highlight' | 'post-grid' | 'hero-slider' | 'newsletter' | 'trending-tags' | 'author-spotlight' | 'custom-html' | 'social-sidebar';
+    type: 'category-highlight' | 'post-grid' | 'hero-slider' | 'newsletter' | 'trending-tags' | 'author-spotlight' | 'custom-html' | 'social-sidebar' | 'article-column';
     config?: any;
 }
 

@@ -11,6 +11,7 @@ import SocialSidebar from "@/components/widgets/SocialSidebar";
 import Newsletter from "@/components/widgets/Newsletter";
 import TrendingTags from "@/components/widgets/TrendingTags";
 import AuthorSpotlight from "@/components/widgets/AuthorSpotlight";
+import ArticleColumn from "@/components/widgets/ArticleColumn";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, limit, orderBy } from "firebase/firestore";
 import { Post } from "@/types/firestore";
@@ -110,6 +111,7 @@ export default async function Home() {
 
       {getWidgetActive('w4') && <TrendingTags />}
       {getWidgetActive('w5') && <AuthorSpotlight />}
+      {getWidgetActive('w6') && <ArticleColumn title="Featured Column" categorySlug="news" limit={5} />}
 
       <div style={{
         backgroundColor: "var(--accent)",
@@ -280,15 +282,28 @@ export default async function Home() {
             </div>
           )}
 
+          <div className="home-sections-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2.5rem", margin: "4rem 0" }}>
+            <ArticleColumn title="Security" categorySlug="security" limit={4} viewAllLink="/category/security" />
+            <ArticleColumn title="Metro" categorySlug="metro" limit={4} viewAllLink="/category/metro" />
+            <ArticleColumn title="Transportation" categorySlug="transportation" limit={4} viewAllLink="/category/transportation" />
+          </div>
+
           {lifestylePosts.length > 0 && (
             <PostGrid title="Lifestyle & Culture" posts={lifestylePosts} columns={4} viewAllLink="/category/lifestyle" />
           )}
+
+          <div className="home-sections-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2.5rem", margin: "4rem 0" }}>
+            <ArticleColumn title="Africa" categorySlug="africa" limit={4} viewAllLink="/category/africa" />
+            <ArticleColumn title="Europe" categorySlug="europe" limit={4} viewAllLink="/category/europe" />
+            <ArticleColumn title="North America" categorySlug="north-america" limit={4} viewAllLink="/category/north-america" />
+          </div>
 
           {sportsPosts.length > 0 && (
             <div style={{ margin: "4rem 0" }}>
               <PostGrid title="Sports" posts={sportsPosts} columns={4} viewAllLink="/category/sports" />
             </div>
           )}
+
         </>
       )}
 
@@ -319,6 +334,9 @@ export default async function Home() {
           }
           .home-sidebar {
             order: 2;
+          }
+          .home-sections-grid {
+            grid-template-columns: 1fr !important;
           }
         }
         @media (max-width: 640px) {

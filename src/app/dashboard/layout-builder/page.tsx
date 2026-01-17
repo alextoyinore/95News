@@ -17,12 +17,15 @@ const initialWidgets = [
     { id: 'w3', name: 'Most Read Posts', active: true },
     { id: 'w4', name: 'Trending Tags', active: false },
     { id: 'w5', name: 'Author Spotlight', active: false },
+    { id: 'w6', name: 'Article Column', active: false },
 ];
 
 export default function LayoutBuilderPage() {
     const [activeTemplateId, setActiveTemplateId] = useState('magazine');
     const [homePageId, setHomePageId] = useState<string | null>(null);
+    const [spotlightAuthorId, setSpotlightAuthorId] = useState<string | null>(null);
     const [pages, setPages] = useState<any[]>([]);
+    const [authors, setAuthors] = useState<any[]>([]);
     const [widgets, setWidgets] = useState(initialWidgets);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -35,10 +38,15 @@ export default function LayoutBuilderPage() {
                 const pagesSnap = await getDocs(query(collection(db, "pages"), where("status", "==", "published")));
                 setPages(pagesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
+                // Fetch Authors for spotlight selector
+                const authorsSnap = await getDocs(query(collection(db, "users"), where("role", "in", ["editor", "superuser", "writer", "contributor"])));
+                setAuthors(authorsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
                 const settings = await getLayoutSettings();
                 if (settings) {
                     setActiveTemplateId(settings.activeTemplateId || 'magazine');
                     setHomePageId(settings.homePageId || null);
+                    setSpotlightAuthorId(settings.spotlightAuthorId || null);
                     if (settings.widgets && settings.widgets.length > 0) {
                         setWidgets(settings.widgets);
                     }
@@ -68,6 +76,7 @@ export default function LayoutBuilderPage() {
             await setDoc(docRef, {
                 activeTemplateId,
                 homePageId: homePageId || null,
+                spotlightAuthorId: spotlightAuthorId || null,
                 widgets,
                 lastUpdated: serverTimestamp()
             }, { merge: true });
@@ -215,6 +224,32 @@ export default function LayoutBuilderPage() {
                             <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                                 You can build any page as a "Magazine" page and set it as home here.
                             </div>
+                        </div>
+
+                        {/* Author Spotlight Selector */}
+                        <div className="glass" style={{ padding: "1.5rem", borderRadius: "var(--radius-md)" }}>
+                            <h3 style={{ fontSize: "1.1rem", marginBottom: "1.2rem" }}>Author Spotlight</h3>
+                            <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "1rem" }}>
+                                Feature a specific author on your homepage. If none selected, it rotates daily.
+                            </p>
+                            <select
+                                value={spotlightAuthorId || ""}
+                                onChange={(e) => setSpotlightAuthorId(e.target.value || null)}
+                                style={{
+                                    width: "100%",
+                                    padding: "0.6rem",
+                                    borderRadius: "var(--radius-sm)",
+                                    border: "1px solid var(--border)",
+                                    backgroundColor: "var(--bg-primary)",
+                                    color: "var(--text-primary)",
+                                    marginBottom: "1rem"
+                                }}
+                            >
+                                <option value="">Daily Rotation (Automatic)</option>
+                                {authors.map(author => (
+                                    <option key={author.id} value={author.id}>{author.displayName || author.email}</option>
+                                ))}
+                            </select>
                         </div>
 
                         {/* Widget Manager */}

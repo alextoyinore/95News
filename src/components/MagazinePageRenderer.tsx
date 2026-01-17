@@ -6,6 +6,7 @@ import SocialSidebar from "@/components/widgets/SocialSidebar";
 import Newsletter from "@/components/widgets/Newsletter";
 import TrendingTags from "@/components/widgets/TrendingTags";
 import AuthorSpotlight from "@/components/widgets/AuthorSpotlight";
+import ArticleColumn from "@/components/widgets/ArticleColumn";
 import { fetchSectionPosts, fetchLatestPosts, fetchPostsByTag } from "@/lib/cmsActions";
 import { Page, MagazineBlock } from "@/types/firestore";
 import { LayoutSettings } from "@/lib/layoutActions";
@@ -56,6 +57,18 @@ export default async function MagazinePageRenderer({ page, layoutSettings }: Mag
 
             case 'social-sidebar':
                 return <div key={block.id} style={{ marginBottom: "4rem" }}><SocialSidebar /></div>;
+
+            case 'article-column':
+                return (
+                    <div key={block.id} style={{ marginBottom: "4rem" }}>
+                        <ArticleColumn
+                            title={block.config?.title}
+                            categorySlug={block.config?.categorySlug}
+                            limit={block.config?.limit}
+                            viewAllLink={block.config?.viewAllLink}
+                        />
+                    </div>
+                );
 
             default:
                 return null;
