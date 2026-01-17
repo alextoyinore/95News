@@ -74,9 +74,13 @@ export default function ArticleColumn({ title, categorySlug, limit = 5, viewAllL
                                 </h4>
                             </Link>
                             <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                                <span style={{ fontWeight: "600", color: "var(--text-secondary)" }}>{post.author}</span>
+                                <Link href={`/author/${post.authorSlug}`} className="metadata-link" style={{ fontWeight: "600", color: "var(--text-secondary)" }}>
+                                    {post.author}
+                                </Link>
                                 <span>•</span>
-                                <span>{post.date}</span>
+                                <Link href={post.archiveLink} className="metadata-link" style={{ color: "inherit" }}>
+                                    {post.date}
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -84,6 +88,12 @@ export default function ArticleColumn({ title, categorySlug, limit = 5, viewAllL
             </div>
 
             <style jsx>{`
+                .metadata-link {
+                    transition: color 0.2s ease;
+                }
+                .metadata-link:hover {
+                    color: var(--accent) !important;
+                }
                 @keyframes pulse {
                     0% { opacity: 0.6; }
                     50% { opacity: 0.3; }

@@ -1,7 +1,7 @@
 import { db } from "./firebase";
 import { collection, query, where, getDocs, limit, orderBy, doc, getDoc, getCountFromServer } from "firebase/firestore";
 import { Post, Category, User, Page } from "@/types/firestore";
-import { formatDate, getAuthorSlug } from "@/lib/utils";
+import { formatDate, getAuthorSlug, getDateSlugs } from "@/lib/utils";
 
 export async function getCategoryBySlug(slugs: string | string[]) {
     const slugList = Array.isArray(slugs) ? slugs : [slugs];
@@ -44,20 +44,24 @@ export async function resolvePostsData(postDocs: Post[]) {
         categoriesMap[doc.id] = { name: data.name, slug: data.slug };
     });
 
-    return postDocs.map(post => ({
-        id: post.id,
-        slug: post.slug,
-        title: post.title,
-        excerpt: post.excerpt || "",
-        category: categoriesMap[post.categoryIds?.[0] || ""]?.name || "News",
-        categorySlug: categoriesMap[post.categoryIds?.[0] || ""]?.slug || "news",
-        author: authors[post.authorId]?.name || "95News",
-        authorId: post.authorId,
-        authorSlug: authors[post.authorId]?.slug || "95news-author",
-        date: formatDate(post.createdAt),
-        image: post.featuredImageUrl,
-        views: post.views || 0
-    }));
+    return postDocs.map(post => {
+        const dateSlugs = getDateSlugs(post.createdAt);
+        return {
+            id: post.id,
+            slug: post.slug,
+            title: post.title,
+            excerpt: post.excerpt || "",
+            category: categoriesMap[post.categoryIds?.[0] || ""]?.name || "News",
+            categorySlug: categoriesMap[post.categoryIds?.[0] || ""]?.slug || "news",
+            author: authors[post.authorId]?.name || "95News",
+            authorId: post.authorId,
+            authorSlug: authors[post.authorId]?.slug || "95news-author",
+            date: formatDate(post.createdAt),
+            archiveLink: `/archive/${dateSlugs.year}/${dateSlugs.month}/${dateSlugs.day}`,
+            image: post.featuredImageUrl,
+            views: post.views || 0
+        };
+    });
 }
 
 export async function fetchSectionPosts(slugs: string | string[], count: number = 4) {

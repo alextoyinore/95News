@@ -8,7 +8,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import AuthorBio from "@/components/AuthorBio";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
 import PostContentRenderer from "@/components/PostContentRenderer";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getDateSlugs } from "@/lib/utils";
 import Newsletter from "@/components/widgets/Newsletter";
 import AudioPlayer from "@/components/AudioPlayer";
 import ShareButtons from "@/components/ShareButtons";
@@ -133,6 +133,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     // Serialize timestamps for Client Components
     const serializedCreatedAt = post.createdAt ? (typeof post.createdAt === 'string' ? post.createdAt : post.createdAt.toDate().toISOString()) : new Date().toISOString();
     const serializedPublishedAt = post.publishedAt ? (typeof post.publishedAt === 'string' ? post.publishedAt : post.publishedAt.toDate().toISOString()) : undefined;
+    const archiveSlugs = getDateSlugs(post.createdAt);
 
     return (
         <>
@@ -190,9 +191,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                         <div style={{ fontWeight: "600", fontSize: "1rem" }}>
                                             {authorDisplayName}
                                         </div>
-                                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                                        <Link
+                                            href={`/archive/${archiveSlugs.year}/${archiveSlugs.month}/${archiveSlugs.day}`}
+                                            style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}
+                                            className="hover-accent"
+                                        >
                                             {formatDate(post.createdAt)}
-                                        </div>
+                                        </Link>
                                     </div>
                                 </Link>
 

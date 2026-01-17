@@ -12,6 +12,7 @@ interface PostCardProps {
         authorId?: string;
         date: string;
         dateSlug?: string;
+        archiveLink?: string;
         image?: string;
     };
     variant?: "horizontal" | "vertical" | "compact" | "minimal";
@@ -51,8 +52,8 @@ export default function PostCard({ post, variant = "vertical", imageHeight = "24
                             ) : (
                                 <span>{post.author}</span>
                             )}
-                            {post.dateSlug ? (
-                                <Link href={post.dateSlug} className="hover-accent" style={{ transition: "color 0.2s" }}>
+                            {post.archiveLink || post.dateSlug ? (
+                                <Link href={(post.archiveLink || post.dateSlug) as string} className="hover-accent" style={{ transition: "color 0.2s" }}>
                                     {post.date}
                                 </Link>
                             ) : (
@@ -72,8 +73,8 @@ export default function PostCard({ post, variant = "vertical", imageHeight = "24
                     <span style={{ color: "var(--accent)", fontWeight: "600", fontSize: "0.75rem", textTransform: "uppercase" }}>{post.category}</span>
                     <h4 style={{ fontSize: "1.2rem", margin: "0.8rem 0" }}>{post.title}</h4>
                     <div style={{ marginTop: "auto", color: "var(--text-muted)", fontSize: "0.8rem" }}>
-                        {post.dateSlug ? (
-                            <Link href={post.dateSlug} className="hover-accent" style={{ transition: "color 0.2s" }}>
+                        {post.archiveLink || post.dateSlug ? (
+                            <Link href={(post.archiveLink || post.dateSlug) as string} className="hover-accent" style={{ transition: "color 0.2s" }}>
                                 {post.date}
                             </Link>
                         ) : (
@@ -120,8 +121,8 @@ export default function PostCard({ post, variant = "vertical", imageHeight = "24
                     <span>{post.author}</span>
                 )}
                 <span>•</span>
-                {post.dateSlug ? (
-                    <Link href={post.dateSlug} style={{ transition: "color 0.2s" }} className="hover-accent">
+                {post.archiveLink || post.dateSlug ? (
+                    <Link href={(post.archiveLink || post.dateSlug) as string} style={{ transition: "color 0.2s" }} className="hover-accent">
                         {post.date}
                     </Link>
                 ) : (

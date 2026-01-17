@@ -107,7 +107,9 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
                         </div>
                         <div>
                             <div style={{ fontWeight: "600" }}>{currentPost.author}</div>
-                            <div style={{ opacity: 0.7 }}>{currentPost.date}</div>
+                            <Link href={currentPost.archiveLink || "#"} style={{ opacity: 0.7 }} className="hover-underline">
+                                {currentPost.date}
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -155,6 +157,9 @@ export default function HeroSlider({ posts }: HeroSliderProps) {
                 }
                 .hero-title:hover {
                     color: var(--accent);
+                }
+                .hover-underline:hover {
+                    text-decoration: underline;
                 }
                 .hero-excerpt {
                     display: -webkit-box;
