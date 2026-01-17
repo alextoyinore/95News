@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, SkipBack, SkipForward, Volume2, Clock } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Clock, X } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+
 
 interface AudioPost {
     id: string;
@@ -22,7 +24,13 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
     const [volume, setVolume] = useState(1);
 
     const audioRef = useRef<HTMLAudioElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
     const currentPost = posts[currentIndex];
+
+
+    // Generate static random heights for the waveform once
+    const [bars] = useState(() => Array.from({ length: 40 }, () => Math.random() * 0.7 + 0.3));
 
     // Reset state when track changes
     useEffect(() => {
@@ -71,13 +79,28 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
         }
     };
 
-    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const time = parseFloat(e.target.value);
-        if (audioRef.current) {
-            audioRef.current.currentTime = time;
-            setCurrentTime(time);
-        }
+    const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+        const audio = audioRef.current;
+        const container = containerRef.current;
+        if (!audio || !container) return;
+
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const percentage = Math.min(Math.max(x / rect.width, 0), 1);
+
+        const newTime = percentage * (duration || 0);
+        audio.currentTime = newTime;
+        setCurrentTime(newTime);
     };
+
+    const handleDismiss = () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+        }
+        setIsPlaying(false);
+        router.push("/");
+    };
+
 
     const formatTime = (time: number) => {
         const minutes = Math.floor(time / 60);
@@ -91,9 +114,18 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
 
     return (
         <div className="audio-player-container">
+            <button
+                onClick={handleDismiss}
+                className="close-player-btn"
+                title="Close Player"
+                aria-label="Close Player"
+            >
+                <X size={24} />
+            </button>
             <div className="player-grid">
-                {/* Main Player Section */}
-                <div className="main-player glass">
+
+                {/* Left: Album Art Section */}
+                <div className="">
                     <div className="album-art">
                         {currentPost.image ? (
                             <img src={currentPost.image} alt={currentPost.title} />
@@ -101,24 +133,47 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                             <div className="placeholder-art">95News Audio</div>
                         )}
                     </div>
+                </div>
 
+                {/* Center: Controls & Info Section */}
+                <div className="main-player-panel">
                     <div className="track-info">
                         <h2>{currentPost.title}</h2>
                         <p className="author">{currentPost.author}</p>
                     </div>
 
                     <div className="controls-area">
-                        <div className="progress-bar-container">
-                            <span className="time">{formatTime(currentTime)}</span>
-                            <input
-                                type="range"
-                                min="0"
-                                max={duration || 100}
-                                value={currentTime}
-                                onChange={handleSeek}
-                                className="progress-slider"
-                            />
-                            <span className="time">{formatTime(duration)}</span>
+                        {/* Waveform Visualization */}
+                        <div
+                            ref={containerRef}
+                            onClick={handleSeek}
+                            className="waveform-container"
+                        >
+                            {bars.map((height, i) => {
+                                const barProgress = i / bars.length;
+                                const isPlayed = barProgress < (duration ? currentTime / duration : 0);
+
+                                return (
+                                    <div
+                                        key={i}
+                                        style={{
+                                            flex: 1,
+                                            height: `${height * 100}%`,
+                                            backgroundColor: isPlayed ? 'var(--accent)' : 'var(--text-muted)',
+                                            opacity: isPlayed ? 1 : 0.3,
+                                            borderRadius: '4px',
+                                            transition: 'height 0.2s ease, background-color 0.1s ease',
+                                            animation: isPlaying && isPlayed ? `equalizer 1s ease-in-out infinite alternate` : 'none',
+                                            animationDelay: `${i * 0.05}s`
+                                        }}
+                                    />
+                                );
+                            })}
+                        </div>
+
+                        <div className="time-display">
+                            <span>{formatTime(currentTime)}</span>
+                            <span>{formatTime(duration)}</span>
                         </div>
 
                         <div className="transport-controls">
@@ -140,8 +195,8 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                 </div>
 
                 {/* Playlist Section */}
-                <div className="playlist glass">
-                    <h3>Up Next</h3>
+                <div className="playlist">
+                    <h3 style={{ marginBottom: '1rem' }}>Up Next</h3>
                     <div className="playlist-tracks">
                         {posts.map((post, idx) => (
                             <div
@@ -175,48 +230,45 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
             <style jsx>{`
                 .audio-player-container {
                     padding: 2rem 0;
+                    position: relative;
                 }
                 .player-grid {
                     display: grid;
-                    grid-template-columns: 1.5fr 1fr;
+                    grid-template-columns: 1fr 1.5fr 1fr;
                     gap: 2rem;
-                    height: calc(100vh - 140px);
-                    max-height: 800px;
+                    min-height: 600px;
                 }
-                .main-player {
-                    padding: 3rem;
+                .album-art-panel {
+                    padding: 2rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: var(--radius-lg);
+                    background: var(--bg-secondary);
+                }
+                .main-player-panel {
+                    padding: 1rem;
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
+                    // justify-content: center;
+                    border-radius: var(--radius-lg);
+                    // background: var(--bg-secondary);
                     text-align: center;
-                    border-radius: var(--radius-lg);
-                    height: 100%;
-                    border: none !important;
-                    box-shadow: none !important; /* Removing shadow too if "borders" implied clean flat look, or just borders? User said "borders". I'll stick to border: none. */
                 }
-                /* ... */
-
                 .playlist {
-                    padding: 1.5rem;
-                    border-radius: var(--radius-lg);
+                    // padding: 1.5rem;
+                    // border-radius: var(--radius-lg);
                     display: flex;
                     flex-direction: column;
                     overflow: hidden;
-                    height: 100%;
-                    border: none !important;
-                }
-                .playlist h3 {
-                    margin-bottom: 1rem;
-                    padding-bottom: 1rem;
-                    /* border-bottom: 1px solid var(--border); REMOVED */
+                    // background: var(--bg-secondary);
                 }
                 .album-art {
-                    width: 300px;
-                    height: 300px;
+                    width: 100%;
+                    aspect-ratio: 1/1;
+                    max-width: 350px;
                     border-radius: var(--radius-lg);
                     overflow: hidden;
-                    /* box-shadow: var(--shadow-lg); REMOVED */
-                    margin-bottom: 2rem;
                     background: var(--bg-tertiary);
                 }
                 .album-art img {
@@ -224,46 +276,42 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     height: 100%;
                     object-fit: cover;
                 }
-                .placeholder-art {
-                    width: 100%;
-                    height: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 2rem;
-                    font-weight: 800;
-                    color: var(--text-muted);
-                }
                 .track-info h2 {
-                    font-size: 1.8rem;
+                    font-size: 2rem;
                     margin-bottom: 0.5rem;
-                    line-height: 1.3;
+                    line-height: 1.2;
                 }
                 .track-info .author {
                     color: var(--accent);
                     font-weight: 600;
-                    margin-bottom: 2rem;
+                    font-size: 1.1rem;
+                    margin-bottom: 3rem;
                 }
                 .controls-area {
                     width: 100%;
-                    max-width: 500px;
-                    margin-top: auto;
+                    max-width: 600px;
+                    margin: 0 auto;
                 }
-                .progress-bar-container {
+                .waveform-container {
+                    height: 80px;
                     display: flex;
                     align-items: center;
-                    gap: 1rem;
-                    margin-bottom: 1.5rem;
-                    font-size: 0.85rem;
-                    font-variant-numeric: tabular-nums;
-                }
-                .progress-slider {
-                    flex: 1;
-                    height: 4px;
-                    border-radius: 2px;
-                    background: var(--bg-tertiary);
+                    gap: 4px;
                     cursor: pointer;
-                    accent-color: var(--accent);
+                    margin-bottom: 1rem;
+                    padding: 0 1rem;
+                }
+                .time-display {
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 0.85rem;
+                    color: var(--text-muted);
+                    font-variant-numeric: tabular-nums;
+                    margin-bottom: 2rem;
+                }
+                @keyframes equalizer {
+                    0% { transform: scaleY(1); }
+                    100% { transform: scaleY(0.6); }
                 }
                 .transport-controls {
                     display: flex;
@@ -271,6 +319,7 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     justify-content: center;
                     gap: 2rem;
                 }
+                /* ...rest of existing styles for buttons and playlist items... */
                 .control-btn {
                     background: none;
                     border: none;
@@ -287,28 +336,26 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     background: var(--bg-tertiary);
                 }
                 .control-btn.primary {
-                    width: 64px;
-                    height: 64px;
+                    width: 72px;
+                    height: 72px;
                     background: var(--accent);
                     color: white;
-                    box-shadow: var(--shadow-md);
+                    box-shadow: 0 8px 16px rgba(234, 88, 12, 0.3);
                 }
                 .control-btn.primary:hover {
                     transform: scale(1.05);
-                    background: var(--accent-hover);
+                    box-shadow: 0 12px 20px rgba(234, 88, 12, 0.4);
                 }
                 .control-btn.secondary {
-                    width: 48px;
-                    height: 48px;
+                    width: 56px;
+                    height: 56px;
                 }
-
-
                 .playlist-tracks {
                     overflow-y: auto;
                     display: flex;
                     flex-direction: column;
                     gap: 0.5rem;
-                    scroll-behavior: smooth;
+                    flex: 1;
                 }
                 .playlist-item {
                     display: flex;
@@ -323,24 +370,15 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     background: var(--bg-tertiary);
                 }
                 .playlist-item.active {
-                    background: hsla(20, 90%, 55%, 0.15);
-                    /* border: 1px solid var(--accent); REMOVED border as per previous request */
-                }
-                .playlist-item.active h4 {
-                    color: var(--accent);
-                }
-                .playlist-item.active p {
-                    color: var(--text-primary); /* Ensure subheading is legible */
-                    opacity: 0.8;
+                    background: hsla(20, 90%, 55%, 0.1);
                 }
                 .track-thumb {
                     width: 48px;
                     height: 48px;
                     border-radius: var(--radius-sm);
                     overflow: hidden;
-                    background: var(--bg-secondary);
-                    position: relative;
                     flex-shrink: 0;
+                    position: relative;
                 }
                 .track-thumb img {
                     width: 100%;
@@ -362,8 +400,18 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     font-size: 0.8rem;
                     color: var(--text-secondary);
                 }
-                
-                /* Playing Animation */
+
+                .placeholder-art {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 2rem;
+                    font-weight: 800;
+                    color: var(--text-muted);
+                }
+                /* Playing Animation for Playlist */
                 .playing-indicator {
                     position: absolute;
                     top: 0;
@@ -389,23 +437,27 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
                     50% { height: 20px; }
                 }
 
-                @media (max-width: 1024px) {
+                @media (max-width: 1200px) {
+                    .player-grid {
+                        grid-template-columns: 1fr 1fr;
+                    }
+                    .album-art-panel {
+                        display: none;
+                    }
+                }
+                @media (max-width: 768px) {
                     .player-grid {
                         grid-template-columns: 1fr;
                         height: auto;
-                        max-height: none;
                     }
-                    .playlist-tracks {
-                        max-height: 400px;
+                    .main-player-panel {
+                        // padding: 2rem 1.5rem;
                     }
-                }
-                @media (max-width: 640px) {
-                    .main-player {
-                        padding: 1rem;
+                    .track-info h2 {
+                        font-size: 1.5rem;
                     }
-                    .album-art {
-                        width: 200px;
-                        height: 200px;
+                    .playlist {
+                        max-height: 500px;
                     }
                 }
             `}</style>
