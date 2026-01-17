@@ -114,14 +114,6 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
 
     return (
         <div className="audio-player-container">
-            <button
-                onClick={handleDismiss}
-                className="close-player-btn"
-                title="Close Player"
-                aria-label="Close Player"
-            >
-                <X size={24} />
-            </button>
             <div className="player-grid">
 
                 {/* Left: Album Art Section */}
@@ -229,7 +221,7 @@ export default function AudioFeedPlayer({ posts }: { posts: AudioPost[] }) {
 
             <style jsx>{`
                 .audio-player-container {
-                    padding: 2rem 0;
+                    padding: 1rem 0;
                     position: relative;
                 }
                 .player-grid {
