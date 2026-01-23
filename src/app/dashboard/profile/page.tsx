@@ -13,7 +13,13 @@ export default function ProfilePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState({
         displayName: userRecord?.displayName || '',
-        bio: userRecord?.bio || ''
+        bio: userRecord?.bio || '',
+        twitter: userRecord?.socialHandles?.twitter || '',
+        instagram: userRecord?.socialHandles?.instagram || '',
+        linkedin: userRecord?.socialHandles?.linkedin || '',
+        facebook: userRecord?.socialHandles?.facebook || '',
+        youtube: userRecord?.socialHandles?.youtube || '',
+        website: userRecord?.socialHandles?.website || ''
     });
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +46,13 @@ export default function ProfilePage() {
         if (userRecord) {
             setFormData({
                 displayName: userRecord.displayName || '',
-                bio: userRecord.bio || ''
+                bio: userRecord.bio || '',
+                twitter: userRecord.socialHandles?.twitter || '',
+                instagram: userRecord.socialHandles?.instagram || '',
+                linkedin: userRecord.socialHandles?.linkedin || '',
+                facebook: userRecord.socialHandles?.facebook || '',
+                youtube: userRecord.socialHandles?.youtube || '',
+                website: userRecord.socialHandles?.website || ''
             });
         }
     }, [userRecord]);
@@ -54,7 +66,15 @@ export default function ProfilePage() {
             const userRef = doc(db, 'users', user.uid);
             await updateDoc(userRef, {
                 displayName: formData.displayName,
-                bio: formData.bio
+                bio: formData.bio,
+                socialHandles: {
+                    twitter: formData.twitter,
+                    instagram: formData.instagram,
+                    linkedin: formData.linkedin,
+                    facebook: formData.facebook,
+                    youtube: formData.youtube,
+                    website: formData.website
+                }
             });
             // Success feedback would go here
         } catch (error) {
@@ -186,6 +206,38 @@ export default function ProfilePage() {
                                         resize: "none"
                                     }}
                                 />
+                            </div>
+
+                            <div style={{ marginTop: "1rem" }}>
+                                <h4 style={{ marginBottom: "1rem", fontSize: "1rem" }}>Social Handles</h4>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                                    {[
+                                        { id: 'twitter', label: 'Twitter URL', placeholder: 'https://twitter.com/...' },
+                                        { id: 'instagram', label: 'Instagram URL', placeholder: 'https://instagram.com/...' },
+                                        { id: 'linkedin', label: 'LinkedIn URL', placeholder: 'https://linkedin.com/in/...' },
+                                        { id: 'facebook', label: 'Facebook URL', placeholder: 'https://facebook.com/...' },
+                                        { id: 'youtube', label: 'YouTube URL', placeholder: 'https://youtube.com/c/...' },
+                                        { id: 'website', label: 'Personal Website', placeholder: 'https://...' },
+                                    ].map((field) => (
+                                        <div key={field.id}>
+                                            <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>{field.label}</label>
+                                            <input
+                                                type="url"
+                                                value={(formData as any)[field.id]}
+                                                onChange={(e) => setFormData({ ...formData, [field.id]: e.target.value })}
+                                                placeholder={field.placeholder}
+                                                style={{
+                                                    width: "100%",
+                                                    padding: "0.7rem",
+                                                    borderRadius: "var(--radius-sm)",
+                                                    border: "1px solid var(--border)",
+                                                    backgroundColor: "transparent",
+                                                    fontSize: "0.85rem"
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                             <button type="submit" className="btn btn-primary" disabled={isSaving} style={{ alignSelf: "flex-start" }}>
                                 {isSaving ? 'Saving...' : 'Save Changes'}

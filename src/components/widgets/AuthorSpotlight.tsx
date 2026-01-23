@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 import { getLayoutSettings } from "@/lib/layoutActions";
 import { User } from "@/types/firestore";
+import { Twitter, Instagram, Linkedin, Facebook, Youtube, Globe } from "lucide-react";
 
 export default function AuthorSpotlight() {
     const [author, setAuthor] = useState<User | null>(null);
@@ -110,10 +111,52 @@ export default function AuthorSpotlight() {
                     {author.bio || `Passionate journalist at 95News. Follow for more deep-dives and investigations.`}
                 </p>
 
+                {author.socialHandles && Object.values(author.socialHandles).some(v => v) && (
+                    <div style={{ display: "flex", gap: "1rem", justifyContent: "center", margin: "0.5rem 0" }}>
+                        {author.socialHandles.twitter && (
+                            <a href={author.socialHandles.twitter} target="_blank" rel="noopener noreferrer" className="social-icon-link">
+                                <Twitter size={18} />
+                            </a>
+                        )}
+                        {author.socialHandles.instagram && (
+                            <a href={author.socialHandles.instagram} target="_blank" rel="noopener noreferrer" className="social-icon-link">
+                                <Instagram size={18} />
+                            </a>
+                        )}
+                        {author.socialHandles.linkedin && (
+                            <a href={author.socialHandles.linkedin} target="_blank" rel="noopener noreferrer" className="social-icon-link">
+                                <Linkedin size={18} />
+                            </a>
+                        )}
+                        {author.socialHandles.facebook && (
+                            <a href={author.socialHandles.facebook} target="_blank" rel="noopener noreferrer" className="social-icon-link">
+                                <Facebook size={18} />
+                            </a>
+                        )}
+                        {author.socialHandles.youtube && (
+                            <a href={author.socialHandles.youtube} target="_blank" rel="noopener noreferrer" className="social-icon-link">
+                                <Youtube size={18} />
+                            </a>
+                        )}
+                        {author.socialHandles.website && (
+                            <a href={author.socialHandles.website} target="_blank" rel="noopener noreferrer" className="social-icon-link">
+                                <Globe size={18} />
+                            </a>
+                        )}
+                    </div>
+                )}
+
                 <Link href={`/author/${author.id.trim()}`} className="btn btn-outline" style={{ padding: "0.6rem 1.2rem", fontSize: "0.85rem", width: "100%" }}>See All Stories</Link>
             </div>
 
             <style jsx>{`
+                .social-icon-link {
+                    color: var(--text-secondary);
+                    transition: color 0.2s ease;
+                }
+                .social-icon-link:hover {
+                    color: var(--accent);
+                }
                 @keyframes pulse {
                     0% { opacity: 0.6; }
                     50% { opacity: 0.3; }

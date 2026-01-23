@@ -1,3 +1,12 @@
+export interface SocialHandles {
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+    facebook?: string;
+    youtube?: string;
+    website?: string;
+}
+
 export interface User {
     id: string; // Matches Firebase Auth UID
     displayName?: string;
@@ -5,6 +14,7 @@ export interface User {
     photoURL?: string;
     bio?: string;
     role: 'superuser' | 'editor' | 'writer' | 'contributor' | 'subscriber';
+    socialHandles?: SocialHandles;
 }
 
 export interface MagazineBlock {

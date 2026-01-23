@@ -4,6 +4,7 @@ import { User, Post } from "@/types/firestore";
 import { notFound } from "next/navigation";
 import FetchMorePosts from "@/components/FetchMorePosts";
 import { formatDate, getAuthorSlug, getDateSlugs } from "@/lib/utils";
+import { Twitter, Instagram, Linkedin, Facebook, Youtube, Globe } from "lucide-react";
 
 interface AuthorArchiveProps {
     params: Promise<{ id: string }>;
@@ -77,6 +78,41 @@ export default async function AuthorArchive({ params }: AuthorArchiveProps) {
                     <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem", maxWidth: "800px" }}>
                         {author.bio || `Contributor to 95News. Sharing insights and updates on various topics.`}
                     </p>
+
+                    {author.socialHandles && Object.values(author.socialHandles).some(v => v) && (
+                        <div style={{ display: "flex", gap: "1.2rem", marginTop: "1.5rem" }}>
+                            {author.socialHandles.twitter && (
+                                <a href={author.socialHandles.twitter} target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }} className="hover-accent">
+                                    <Twitter size={20} />
+                                </a>
+                            )}
+                            {author.socialHandles.instagram && (
+                                <a href={author.socialHandles.instagram} target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }} className="hover-accent">
+                                    <Instagram size={20} />
+                                </a>
+                            )}
+                            {author.socialHandles.linkedin && (
+                                <a href={author.socialHandles.linkedin} target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }} className="hover-accent">
+                                    <Linkedin size={20} />
+                                </a>
+                            )}
+                            {author.socialHandles.facebook && (
+                                <a href={author.socialHandles.facebook} target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }} className="hover-accent">
+                                    <Facebook size={20} />
+                                </a>
+                            )}
+                            {author.socialHandles.youtube && (
+                                <a href={author.socialHandles.youtube} target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }} className="hover-accent">
+                                    <Youtube size={20} />
+                                </a>
+                            )}
+                            {author.socialHandles.website && (
+                                <a href={author.socialHandles.website} target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }} className="hover-accent">
+                                    <Globe size={20} />
+                                </a>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -313,7 +313,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                 id: post.author.id,
                                 name: authorDisplayName,
                                 bio: post.author.bio || "Contributing writer at 95News.",
-                                avatar: post.author.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorDisplayName)}&background=random`
+                                avatar: post.author.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorDisplayName)}&background=random`,
+                                socialHandles: post.author.socialHandles
                             }} />
                         )
                     }
